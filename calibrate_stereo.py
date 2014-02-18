@@ -40,7 +40,7 @@ def find_files(folder):
 
 class StereoCalibrator(object):
     """A class that calibrates stereo cameras."""
-    def __init__(self, rows, columns, square_size):
+    def __init__(self, rows, columns, square_size, image_size):
         """
         Store variables relevant to the camera calibration.
 
@@ -48,27 +48,27 @@ class StereoCalibrator(object):
         coordinates that correspond to the actual positions of the chessboard
         corners observed on a 2D plane in 3D space.
         """
-        # : Number of calibration images
+        #: Number of calibration images
         self.image_count = 0
-        # : Number of inside corners in the chessboard's rows
+        #: Number of inside corners in the chessboard's rows
         self.rows = rows
-        # : Number of inside corners in the chessboard's columns
+        #: Number of inside corners in the chessboard's columns
         self.columns = columns
-        # : Size of chessboard squares in cm
+        #: Size of chessboard squares in cm
         self.square_size = square_size
-        pattern_size = (self.columns, self.rows)
+        #: Size of calibration images in pixels
+        self.image_size = image_size
+        pattern_size = (self.rows, self.columns)
         corner_coordinates = np.zeros((np.prod(pattern_size), 3), np.float32)
         corner_coordinates[:, :2] = np.indices(pattern_size).T.reshape(-1, 2)
         corner_coordinates *= self.square_size
-        # : Real world corner coordinates found in each image
+        #: Real world corner coordinates found in each image
         self.corner_coordinates = corner_coordinates
-        # : Array of corner coordinates to match the corners found.
+        #: Array of real world corner coordinates to match the corners found
         self.object_points = []
-    # TODO: Add method to load the corners from all images. Every time you do
-    # so, increment image_count. You'll need the corners later.
-    def add_corners(self, image_pair):
-        """Record chessboard corners found in an image pair."""
-        self.image_count += 1
+        #: Array of found corner coordinates from calibration images for left
+        #: and right camera, respectively
+        self.image_points = {"left": [], "right": []}
     def get_corners(self, image):
         """Find subpixel chessboard corners in image."""
         temp = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -86,78 +86,76 @@ class StereoCalibrator(object):
         cv2.drawChessboardCorners(temp, (self.rows, self.columns), corners,
                                   True)
         show_image(temp, "Chessboard")
-    def calibrate_cameras(self, image_list):
+    def add_corners(self, image_pair, show_results=False):
         """
-        Calibrate cameras based on found chessboard corners.
+        Record chessboard corners found in an image pair.
 
-        First, the real world coordinates of all chessboard corners are
-        generated as a list of 3D coordinates on a 2D plane. The list is
-        repeated to provide the real world coordinates for each point found in
-        every image pair.
-
-        Then the real world coordinates and the picture coordinates for each
-        image are transformed into CvMats with the same dimensions in order to
-        be passed to cv2.StereoCalibrate.
+        The image pair should be an iterable composed of two CvMats ordered
+        (left, right).
         """
-        # See stereo_calibrate.cpp, line 240, to see how this is done.
-        # Beforehand all the stuff is sorted into weird matrices, see lines
-        # 228-231. The variables in the C file M1, D1, M2 and D2 are the
-        # respective cameras' camera matrices and distortion coefficients.
-        #
-        # Now I'm making the objectPoints. These are the actual coordinates of
-        # the corners observed on a 2d plane embedded in 3d space. Pretty simple
-        # and I'm using some cheat variables for making sure that I'm matching
-        # what the C program outputs.
-
-
-        # This is just for testing purposes, I'm far from finished. What this is
-        # is the coordinates of the chessboard corners on a 2d plane in a 3d
-        # space with 0 along the x along the z axis. I'm returning it right now
-        # so I can check it out, but what I'm really interested in is returning
-        # all the calibration stuff that's in the lines below. And... It's
-        # tested and it works! real_corner_coordinates is the same as the vector
-        # of 3d coordinates produced on lines 221-248 (with my comments) in
-        # stereo_calibrate.cpp.
-#         (retval, cameraMatrix1, distCoeffs1, cameraMatrix2, distCoeffs2,
-#          R, T, E, F) = cv2.stereoCalibrate(objectPoints,
-#                                            imagePoints1,
-#                                            imagePoints2,
-#                                            imageSize,
-#                                        criteria=(cv2.TERM_CRITERIA_MAX_ITER +
-#                                                  cv2.TERM_CRITERIA_EPS,
-#                                                  100, 1e-5),
-#                                            flags=(cv2.CALIB_FIX_ASPECT_RATIO +
-#                                                   cv2.CALIB_ZERO_TANGENT_DIST +
-#                                                   cv2.CALIB_SAME_FOCAL_LENGTH))
-#         return (cameraMatrix1, distCoeffs1, cameraMatrix2, distCoeffs2,
-#                 R, T, E, F)
+        side = "left"
+        self.object_points.append(self.corner_coordinates)
+        for image in image_pair:
+            corners = self.get_corners(image)
+            if show_results:
+                self.show_corners(image, corners)
+            self.image_points[side].append(corners.reshape(-1, 2))
+            side = "right"
+            self.image_count += 1
+    def calibrate_cameras(self):
+        """Calibrate cameras based on found chessboard corners."""
+        (retval, cameraMatrix1, distCoeffs1, cameraMatrix2, distCoeffs2,
+         R, T, E, F) = cv2.stereoCalibrate(self.object_points,
+                                           self.image_points["left"],
+                                           self.image_points["right"],
+                                           self.image_size,
+                                       criteria=(cv2.TERM_CRITERIA_MAX_ITER +
+                                                 cv2.TERM_CRITERIA_EPS,
+                                                 100, 1e-5),
+                                           flags=(cv2.CALIB_FIX_ASPECT_RATIO +
+                                                  cv2.CALIB_ZERO_TANGENT_DIST +
+                                                  cv2.CALIB_SAME_FOCAL_LENGTH))
+        return (cameraMatrix1, distCoeffs1, cameraMatrix2, distCoeffs2,
+                R, T, E, F)
 
 
 def main():
     """Read all images in input folder and produce camera calibration files."""
-    parser = argparse.ArgumentParser(description="Read images taken with "
-                                     "stereo pair and use them to compute "
-                                     "camera calibration.",
-                             parents=[chessboard_photos.CHESSBOARD_ARGUMENTS])
-    parser.add_argument("square_size", help="Size of chessboard squares in cm.")
-    parser.add_argument("input_folder", help="Input folder assumed to contain "
-                        "only stereo images taken with the stereo camera pair "
-                        "that should be calibrated.",
-                        )
-    parser.add_argument("output_folder", help="Folder to write calibration XML "
-                        "files to.", default="/tmp/")
-    args = parser.parse_args()
+    # TODO: Include option for showing disparity pictures
+#    parser = argparse.ArgumentParser(description="Read images taken with "
+#                                     "stereo pair and use them to compute "
+#                                     "camera calibration.",
+#                             parents=[chessboard_photos.CHESSBOARD_ARGUMENTS])
+#    parser.add_argument("square_size", help="Size of chessboard squares in cm.")
+#    parser.add_argument("input_folder", help="Input folder assumed to contain "
+#                        "only stereo images taken with the stereo camera pair "
+#                        "that should be calibrated.",
+#                        )
+#    parser.add_argument("output_folder", help="Folder to write calibration XML "
+#                        "files to.", default="/tmp/")
+#    parser.add_argument("--show-chessboards", help="Display detected "
+#                        "chessboard corners.", action="store_true")
+#    args = parser.parse_args()
 
+    # TODO: These are fake arguments used for testing
     args = argparse.ArgumentParser()
     args.input_folder = "/home/lee/development/eclipse/opencv-experiments/data/calibration_pictures"
     args.rows, args.columns, args.square_size = 9, 6, 1.8
-    calibrator = StereoCalibrator(args.rows, args.columns, args.square_size)
-    input_files = find_files(args.input_folder)
-    for input_file in input_files:
-        img = cv2.imread(input_file)
-        crns = calibrator.get_corners(img)
-        calibrator.show_corners(img, crns)
+    args.show_chessboards = False
 
+    input_files = find_files(args.input_folder)
+    height, width = cv2.imread(input_files[0]).shape[:2]
+    calibrator = StereoCalibrator(args.rows, args.columns, args.square_size,
+                                  (width, height))
+    # Consume input_files, reading the images and passing them to the calibrator
+    # to store the corners.
+    while input_files:
+        left, right = input_files[:2]
+        img_left, im_right = cv2.imread(left), cv2.imread(right)
+        calibrator.add_corners((img_left, im_right),
+                               show_results=args.show_chessboards)
+        input_files = input_files[2:]
+    calibrator.calibrate_cameras()
     """
     I've got a choice here of how I should build this. I could go object
     oriented or just use functions. Not sure what would be the most elegant.
