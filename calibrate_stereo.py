@@ -38,6 +38,82 @@ def find_files(folder):
     return files
 
 
+class CameraCalibration(object):
+    """Camera calibration values."""
+    def __init__(self, calibration=None, input_folder=None):
+        """
+        Initialize camera calibration.
+
+        If another calibration object is provided, copy its values. If an input
+        folder is provided, load *.npy files from that folder. An input folder
+        overwrites a calibration object.
+        """
+        #: Camera matrices
+        self.cam_mats = {"left": None, "right": None}
+        #: Distortion coefficients
+        self.dist_coefs = {"left": None, "right": None}
+        #: Rotation matrix
+        self.rot_mat = None
+        #: Translation vector
+        self.trans_vec = None
+        #: Essential matrix
+        self.e_mat = None
+        #: Fundamental matrix
+        self.f_mat = None
+        #: Rectification transforms
+        self.rect_trans = {"left": None, "right": None}
+        #: Projection matrices
+        self.proj_mats = {"left": None, "right": None}
+        #: Disparity to depth mapping matrix
+        self.disp_to_depth_mat = None
+        #: Bounding boxes of valid pixels
+        self.valid_boxes = {"left": None, "right": None}
+        if calibration:
+            self.copy_calibration(calibration)
+        elif input_folder:
+            self.load(input_folder)
+    def __str__(self):
+        output = ""
+        for key, item in self.__dict__.items():
+            output += key + ":\n"
+            output += str(item) + "\n"
+        return output
+    def copy_calibration(self, calibration):
+        """Copy another ``CameraCalibration`` object's values."""
+        for key, item in calibration.__dict__.items():
+            self.__dict__[key] = item
+    def interact_with_folder(self, output_folder, action):
+        """
+        Export matrices as *.npy files to an output folder.
+
+        ``action`` is a string. It determines whether the method reads or writes
+        to disk. It must have one of the following values: ('r', 'w').
+        """
+        if not action in ('r', 'w'):
+            raise ValueError("action must be either 'r' or 'w'.")
+        for key, item in self.__dict__.items():
+            if isinstance(item, dict):
+                for side in ("left", "right"):
+                    filename = os.path.join(output_folder,
+                                            "{}_{}.npy".format(key, side))
+                    if action == 'w':
+                        np.save(filename, self.__dict__[key][side])
+                    else:
+                        self.__dict__[key][side] = np.load(filename)
+            else:
+                filename = os.path.join(output_folder, "{}.npy".format(key))
+                if action == 'w':
+                    np.save(filename, self.__dict__[key])
+                else:
+                    self.__dict__[key] = np.load(filename)
+    def export(self, output_folder):
+        """Export matrices as *.npy files to an output folder."""
+        self.interact_with_folder(output_folder, 'w')
+    def load(self, input_folder):
+        """Load values from *.npy files in ``input_folder``."""
+        self.interact_with_folder(input_folder, 'r')
+
+
 class StereoCalibrator(object):
     """A class that calibrates stereo cameras."""
     def __init__(self, rows, columns, square_size, image_size):
@@ -104,19 +180,66 @@ class StereoCalibrator(object):
             self.image_count += 1
     def calibrate_cameras(self):
         """Calibrate cameras based on found chessboard corners."""
-        (retval, cameraMatrix1, distCoeffs1, cameraMatrix2, distCoeffs2,
-         R, T, E, F) = cv2.stereoCalibrate(self.object_points,
-                                           self.image_points["left"],
-                                           self.image_points["right"],
-                                           self.image_size,
-                                       criteria=(cv2.TERM_CRITERIA_MAX_ITER +
-                                                 cv2.TERM_CRITERIA_EPS,
-                                                 100, 1e-5),
-                                           flags=(cv2.CALIB_FIX_ASPECT_RATIO +
-                                                  cv2.CALIB_ZERO_TANGENT_DIST +
-                                                  cv2.CALIB_SAME_FOCAL_LENGTH))
-        return (cameraMatrix1, distCoeffs1, cameraMatrix2, distCoeffs2,
-                R, T, E, F)
+        criteria = (cv2.TERM_CRITERIA_MAX_ITER + cv2.TERM_CRITERIA_EPS,
+                    100, 1e-5)
+        flags=(cv2.CALIB_FIX_ASPECT_RATIO + cv2.CALIB_ZERO_TANGENT_DIST +
+               cv2.CALIB_SAME_FOCAL_LENGTH)
+        calib = CameraCalibration()
+        (calib.cam_mats["left"], calib.dist_coefs["left"],
+         calib.cam_mats["right"], calib.dist_coefs["right"],
+         calib.rot_mat, calib.trans_vec, calib.e_mat,
+         calib.f_mat) = cv2.stereoCalibrate(self.object_points,
+                                            self.image_points["left"],
+                                            self.image_points["right"],
+                                            self.image_size,
+                                            criteria=criteria,
+                                            flags=flags)[1:]
+        (calib.rect_trans["left"], calib.rect_trans["right"],
+         calib.proj_mats["left"], calib.proj_mats["right"],
+         calib.disp_to_depth_mat, calib.valid_boxes["left"],
+         calib.valid_boxes["right"]) = cv2.stereoRectify(calib.cam_mats["left"],
+                                                      calib.dist_coefs["left"],
+                                                      calib.cam_mats["right"],
+                                                      calib.dist_coefs["right"],
+                                                      self.image_size,
+                                                      calib.rot_mat,
+                                                      calib.trans_vec,
+                                                      flags=0)
+        return calib
+    def check_calibration(self, calibration):
+        """
+        Check calibration quality by computing average reprojection error.
+
+        First, undistort detected points and compute epilines for each side.
+        Then compute the error between the computed epipolar lines and the
+        position of the points detected on the other side for each point and
+        return the average error.
+        """
+        sides = "left", "right"
+        which_image = {sides[0]: 1, sides[1]: 2}
+        undistorted, lines = {}, {}
+        for side in sides:
+            undistorted[side] = cv2.undistortPoints(
+                         np.concatenate(self.image_points[side]).reshape(-1,
+                                                                         1, 2),
+                         calibration.cam_mats[side],
+                         calibration.dist_coefs[side],
+                         P=calibration.cam_mats[side])
+            lines[side] = cv2.computeCorrespondEpilines(undistorted[side],
+                                              which_image[side],
+                                              calibration.f_mat)
+        total_error = 0
+        this_side, other_side = sides
+        for side in sides:
+            for i in range(len(undistorted[side])):
+                total_error += abs(undistorted[this_side][i][0][0] *
+                                   lines[other_side][i][0][0] +
+                                   undistorted[this_side][i][0][1] *
+                                   lines[other_side][i][0][1] +
+                                   lines[other_side][i][0][2])
+            other_side, this_side = sides
+        total_points = self.image_count * len(self.object_points)
+        return total_error / total_points
 
 
 def main():
