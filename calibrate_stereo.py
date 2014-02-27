@@ -11,6 +11,7 @@ import argparse
 import os
 
 import cv2
+import progressbar
 
 import chessboard_photos
 import numpy as np
@@ -243,59 +244,53 @@ class StereoCalibrator(object):
 
 
 def main():
-    """Read all images in input folder and produce camera calibration files."""
-    # TODO: Include option for showing disparity pictures
-#    parser = argparse.ArgumentParser(description="Read images taken with "
-#                                     "stereo pair and use them to compute "
-#                                     "camera calibration.",
-#                             parents=[chessboard_photos.CHESSBOARD_ARGUMENTS])
-#    parser.add_argument("square_size", help="Size of chessboard squares in cm.")
-#    parser.add_argument("input_folder", help="Input folder assumed to contain "
-#                        "only stereo images taken with the stereo camera pair "
-#                        "that should be calibrated.",
-#                        )
-#    parser.add_argument("output_folder", help="Folder to write calibration XML "
-#                        "files to.", default="/tmp/")
-#    parser.add_argument("--show-chessboards", help="Display detected "
-#                        "chessboard corners.", action="store_true")
-#    args = parser.parse_args()
+    """
+    Read all images in input folder and produce camera calibration files.
 
-    # TODO: These are fake arguments used for testing
-    args = argparse.ArgumentParser()
-    args.input_folder = "/home/lee/development/eclipse/opencv-experiments/data/calibration_pictures"
-    args.rows, args.columns, args.square_size = 9, 6, 1.8
-    args.show_chessboards = False
+    First, parse arguments provided by user. Then scan input folder for input
+    files. Harvest chessboard points from each image in folder, then use them
+    to calibrate the stereo pair. Report average error to user and export
+    calibration files to output folder.
+    """
+    parser = argparse.ArgumentParser(description="Read images taken with "
+                                     "stereo pair and use them to compute "
+                                     "camera calibration.",
+                             parents=[chessboard_photos.CHESSBOARD_ARGUMENTS])
+    parser.add_argument("square_size", help="Size of chessboard squares in cm.",
+                        type=float)
+    parser.add_argument("input_folder", help="Input folder assumed to contain "
+                        "only stereo images taken with the stereo camera pair "
+                        "that should be calibrated.",
+                        )
+    parser.add_argument("output_folder", help="Folder to write calibration XML "
+                        "files to.", default="/tmp/")
+    parser.add_argument("--show-chessboards", help="Display detected "
+                        "chessboard corners.", action="store_true")
+    args = parser.parse_args()
 
     input_files = find_files(args.input_folder)
     height, width = cv2.imread(input_files[0]).shape[:2]
     calibrator = StereoCalibrator(args.rows, args.columns, args.square_size,
                                   (width, height))
-    # Consume input_files, reading the images and passing them to the calibrator
-    # to store the corners.
+    progress = progressbar.ProgressBar(maxval=len(input_files),
+                                       widgets=[progressbar.Bar("=", "[", "]"),
+                                                " ", progressbar.Percentage()])
+    print("Reading input files...")
     while input_files:
         left, right = input_files[:2]
         img_left, im_right = cv2.imread(left), cv2.imread(right)
         calibrator.add_corners((img_left, im_right),
                                show_results=args.show_chessboards)
         input_files = input_files[2:]
-    calibrator.calibrate_cameras()
-    """
-    I've got a choice here of how I should build this. I could go object
-    oriented or just use functions. Not sure what would be the most elegant.
-    Here's the steps:
-    1. Find the chessboard corners and store them somewhere
-    2. Reorganize the image points into some matrices
-    3. Calibrate the cameras
-    4. Check the quality of the camera calibration
-    5. Save the calibration to file
-    6. Rectify images and show disparity maps, apparently because we can
-
-    This doesn't sound like it would be too hard to make as a class. Perhaps
-    one that takes the input folder and then computes the corners for each
-    picture. Lots of helper methods. And at the end of it all it could spit
-    out the calibration matrices or save them to file, however you want it.
-    Otherwise it'd all be stored.
-    """
+        progress.update(progress.maxval - len(input_files))
+    progress.finish()
+    print("Calibrating cameras. This can take a while.")
+    calibration = calibrator.calibrate_cameras()
+    avg_error = calibrator.check_calibration(calibration)
+    print("The average error between chessboard points and their epipolar "
+          "lines is \n"
+          "{} pixels. This should be as small as possible.".format(avg_error))
+    calibration.export(args.output_folder)
 
 if __name__ == "__main__":
     main()
