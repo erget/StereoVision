@@ -39,7 +39,7 @@ def find_files(folder):
     return files
 
 
-class CameraCalibration(object):
+class StereoCalibration(object):
     """Camera calibration values."""
     def __init__(self, calibration=None, input_folder=None):
         """
@@ -80,7 +80,7 @@ class CameraCalibration(object):
             output += str(item) + "\n"
         return output
     def copy_calibration(self, calibration):
-        """Copy another ``CameraCalibration`` object's values."""
+        """Copy another ``StereoCalibration`` object's values."""
         for key, item in calibration.__dict__.items():
             self.__dict__[key] = item
     def interact_with_folder(self, output_folder, action):
@@ -185,7 +185,7 @@ class StereoCalibrator(object):
                     100, 1e-5)
         flags=(cv2.CALIB_FIX_ASPECT_RATIO + cv2.CALIB_ZERO_TANGENT_DIST +
                cv2.CALIB_SAME_FOCAL_LENGTH)
-        calib = CameraCalibration()
+        calib = StereoCalibration()
         (calib.cam_mats["left"], calib.dist_coefs["left"],
          calib.cam_mats["right"], calib.dist_coefs["right"],
          calib.rot_mat, calib.trans_vec, calib.e_mat,
