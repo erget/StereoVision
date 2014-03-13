@@ -3,13 +3,30 @@
 A class for working with calibrated stereo camera pairs.
 '''
 
+import argparse
 from calibrate_stereo import find_files
 import calibrate_stereo
 import webcams
 
-import argparse
 import cv2
 
+def report_variable(variable_name, variable):
+    """Report how often each parameter value was chosen."""
+    unique_values = list(set(variable))
+    value_frequency = {}
+    for value in unique_values:
+        value_frequency[variable.count(value)] = value
+    frequencies = value_frequency.keys()
+    frequencies.sort(reverse=True)
+    header = "{} value | Selection frequency".format(variable_name)
+    left_column_width = len(header[:-21])
+    right_column_width = 21
+    print(header)
+    print("{}|{}".format("-" * left_column_width, "-" * right_column_width))
+    for frequency in frequencies:
+        left_column = str(value_frequency[frequency]).center(left_column_width)
+        right_column = str(frequency).center(right_column_width)
+        print("{}|{}".format(left_column, right_column))
 
 class BadBlockMatcherArgument(Exception):
     """Bad argument supplied for ``block_matcher`` in a ``CalibratedPair``."""
@@ -183,7 +200,7 @@ class StereoBMTuner(object):
         self.update_disparity_map()
 
 def main():
-    """Let user tune all images in the input folder."""
+    """Let user tune all images in the input folder and report chosen values."""
     parser = argparse.ArgumentParser(description="Read images taken from a "
                                      "calibrated stereo pair, compute "
                                      "disparity maps from them and show them "
@@ -204,11 +221,25 @@ def main():
     image_pair = [cv2.imread(image) for image in input_files[:2]]
     rectified_pair = calibration.rectify(image_pair)
     tuner = StereoBMTuner(calibrated_pair, rectified_pair)
+    chosen_arguments = []
     while input_files:
         image_pair = [cv2.imread(image) for image in input_files[:2]]
         rectified_pair = calibration.rectify(image_pair)
         tuner.tune_pair(rectified_pair)
+        chosen_arguments.append((calibrated_pair.stereo_bm_preset,
+                                 calibrated_pair.search_range,
+                                 calibrated_pair.window_size))
         input_files = input_files[2:]
+    stereo_bm_presets, search_ranges, window_sizes = [], [], []
+    for preset, search_range, size in chosen_arguments:
+        stereo_bm_presets.append(preset)
+        search_ranges.append(search_range)
+        window_sizes.append(size)
+    for name, values in (("Stereo BM presets", stereo_bm_presets),
+                         ("Search ranges", search_ranges),
+                         ("Window sizes", window_sizes)):
+        report_variable(name, values)
+        print()
         
 if __name__ == "__main__":
     main()
