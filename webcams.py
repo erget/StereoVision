@@ -1,4 +1,5 @@
 #!/bin/env python
+"""A base class for working with stereo cameras."""
 
 import argparse
 
@@ -18,7 +19,9 @@ class StereoPair(object):
         
         ``devices`` is an iterable containing the device numbers.
         """
+        #: Video captures associated with the ``StereoPair``
         self.captures = [cv2.VideoCapture(device) for device in devices]
+        #: Window names for showing captured frame from each camera
         self.windows = ["Window {}".format(device) for device in devices]
         
     def __enter__(self):

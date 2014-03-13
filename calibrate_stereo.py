@@ -2,18 +2,18 @@
 """
 Module for calibrating stereo cameras from a images with chessboards.
 
-See stereo_match.py in the OpenCV examples for some additional tips on
+See stereo_match.tune_calib_pair in the OpenCV examples for some additional tips on
 converting the generated 3D coordinates into a point cloud. I borrowed some
 numpy magic from there.
 """
 
-import argparse
+import chessboard_photos
 import os
 
+import argparse
 import cv2
 import progressbar
 
-import chessboard_photos
 import numpy as np
 
 
@@ -40,7 +40,13 @@ def find_files(folder):
 
 
 class StereoCalibration(object):
-    """Camera calibration values."""
+    """
+    Camera calibration.
+
+    A ``StereoCalibration`` can be used to store the calibration for a stereo
+    pair from a collection of pictures. With this calibration, it can also
+    rectify pictures taken from its stereo pair.
+    """
     def __init__(self, calibration=None, input_folder=None):
         """
         Initialize camera calibration.
@@ -69,6 +75,10 @@ class StereoCalibration(object):
         self.disp_to_depth_mat = None
         #: Bounding boxes of valid pixels
         self.valid_boxes = {"left": None, "right": None}
+        #: Undistortion maps for remapping
+        self.undistortion_map = {"left": None, "right": None}
+        #: Rectification maps for remapping
+        self.rectification_map = {"left": None, "right": None}
         if calibration:
             self.copy_calibration(calibration)
         elif input_folder:
@@ -83,9 +93,9 @@ class StereoCalibration(object):
         """Copy another ``StereoCalibration`` object's values."""
         for key, item in calibration.__dict__.items():
             self.__dict__[key] = item
-    def interact_with_folder(self, output_folder, action):
+    def _interact_with_folder(self, output_folder, action):
         """
-        Export matrices as *.npy files to an output folder.
+        Export/import matrices as *.npy files to/from an output folder.
 
         ``action`` is a string. It determines whether the method reads or writes
         to disk. It must have one of the following values: ('r', 'w').
@@ -109,10 +119,23 @@ class StereoCalibration(object):
                     self.__dict__[key] = np.load(filename)
     def export(self, output_folder):
         """Export matrices as *.npy files to an output folder."""
-        self.interact_with_folder(output_folder, 'w')
+        self._interact_with_folder(output_folder, 'w')
     def load(self, input_folder):
         """Load values from *.npy files in ``input_folder``."""
-        self.interact_with_folder(input_folder, 'r')
+        self._interact_with_folder(input_folder, 'r')
+    def rectify(self, frames):
+        """
+        Rectify frames passed as (left, right) pair of OpenCV Mats.
+
+        Remapping is done with nearest neighbor for speed.
+        """
+        new_frames = []
+        for i, side in enumerate(("left", "right")):
+            new_frames.append(cv2.remap(frames[i],
+                                        self.undistortion_map[side],
+                                        self.rectification_map[side],
+                                        cv2.INTER_NEAREST))
+        return new_frames
 
 
 class StereoCalibrator(object):
@@ -206,6 +229,15 @@ class StereoCalibrator(object):
                                                       calib.rot_mat,
                                                       calib.trans_vec,
                                                       flags=0)
+        for side in ("left", "right"):
+            (calib.undistortion_map[side],
+             calib.rectification_map[side]) = cv2.initUndistortRectifyMap(
+                                                        calib.cam_mats[side],
+                                                        calib.dist_coefs[side],
+                                                        calib.rect_trans[side],
+                                                        calib.proj_mats[side],
+                                                        self.image_size,
+                                                        cv2.CV_32FC1)
         return calib
     def check_calibration(self, calibration):
         """
@@ -260,9 +292,8 @@ def main():
                         type=float)
     parser.add_argument("input_folder", help="Input folder assumed to contain "
                         "only stereo images taken with the stereo camera pair "
-                        "that should be calibrated.",
-                        )
-    parser.add_argument("output_folder", help="Folder to write calibration XML "
+                        "that should be calibrated.")
+    parser.add_argument("output_folder", help="Folder to write calibration "
                         "files to.", default="/tmp/")
     parser.add_argument("--show-chessboards", help="Display detected "
                         "chessboard corners.", action="store_true")
