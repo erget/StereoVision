@@ -9,9 +9,15 @@ import calibrate_stereo
 import webcams
 
 import cv2
+import simplejson
 
 def report_variable(variable_name, variable):
-    """Report how often each parameter value was chosen."""
+    """
+    Check how often each parameter value was chosen.
+
+    Return most common setting and report over all settings chosen.
+    """
+    report = []
     unique_values = list(set(variable))
     value_frequency = {}
     for value in unique_values:
@@ -21,12 +27,14 @@ def report_variable(variable_name, variable):
     header = "{} value | Selection frequency".format(variable_name)
     left_column_width = len(header[:-21])
     right_column_width = 21
-    print(header)
-    print("{}|{}".format("-" * left_column_width, "-" * right_column_width))
+    report.append(header)
+    report.append("{}|{}".format("-" * left_column_width, "-" *
+                                 right_column_width))
     for frequency in frequencies:
         left_column = str(value_frequency[frequency]).center(left_column_width)
         right_column = str(frequency).center(right_column_width)
-        print("{}|{}".format(left_column, right_column))
+        report.append("{}|{}".format(left_column, right_column))
+    return value_frequency[frequencies[0]], "\n".join(report + ["\n"])
 
 class BadBlockMatcherArgument(Exception):
     """Bad argument supplied for ``block_matcher`` in a ``CalibratedPair``."""
@@ -48,7 +56,8 @@ class CalibratedPair(webcams.StereoPair):
                  calibration,
                  stereo_bm_preset=cv2.STEREO_BM_BASIC_PRESET,
                  search_range=0,
-                 window_size=5):
+                 window_size=5,
+                 bm_settings=None):
         """
         Initialize cameras.
 
@@ -57,6 +66,9 @@ class CalibratedPair(webcams.StereoPair):
         ``calibration`` is a StereoCalibration object. ``stereo_bm_preset``,
         ``search_range`` and ``window_size`` are parameters for the
         ``block_matcher``.
+
+        Settings for the block matcher can be loaded by passing a JSON file
+        boject as ``bm_settings``.
         """
         if devices:
             super(CalibratedPair, self).__init__(devices)
@@ -75,6 +87,22 @@ class CalibratedPair(webcams.StereoPair):
         self.block_matcher = cv2.StereoBM(self.stereo_bm_preset,
                                           self.search_range,
                                           self.window_size)
+        if bm_settings:
+            self.load_bm_settings(bm_settings)
+    def load_bm_settings(self, bm_settings):
+        """Load block matcher settings from a file object."""
+        with open(bm_settings) as settings_file:
+            settings = simplejson.load(settings_file)
+            self.stereo_bm_preset = settings["stereo_bm_preset"]
+            self.search_range = settings["search_range"]
+            self.window_size = settings["window_size"]
+    def save_bm_settings(self, settings_file):
+        """Save block matcher settings to a file object."""
+        with open(settings_file, "w") as settings_file:
+            settings = {"stereo_bm_preset": self.stereo_bm_preset,
+                        "search_range": self.search_range,
+                        "window_size": self.window_size}
+            simplejson.dump(settings, settings_file)
     def get_frames(self):
         """Rectify and return current frames from cameras."""
         frames = super(CalibratedPair, self).get_frames()
@@ -155,6 +183,8 @@ class StereoBMTuner(object):
         """Initialize tuner with a ``CalibratedPair`` and tune given pair."""
         #: Calibrated stereo pair to find Stereo BM settings for
         self.calibrated_pair = calibrated_pair
+        #: (left, right) image pair to find disparity between
+        self.pair = image_pair
         cv2.namedWindow(self.window_name)
         cv2.createTrackbar("cam_preset", self.window_name,
                            self.calibrated_pair.stereo_bm_preset, 3,
@@ -165,8 +195,6 @@ class StereoBMTuner(object):
         cv2.createTrackbar("winsize", self.window_name,
                            self.calibrated_pair.window_size, 21,
                            self.set_window_size)
-        #: (left, right) image pair to find disparity between
-        self.pair = image_pair
         self.tune_pair(image_pair)
     def set_bm_preset(self, preset):
         """Set ``search_range`` and update disparity image."""
@@ -200,7 +228,13 @@ class StereoBMTuner(object):
         self.update_disparity_map()
 
 def main():
-    """Let user tune all images in the input folder and report chosen values."""
+    """
+    Let user tune all images in the input folder and report chosen values.
+
+    Load all images from input folder, consuming available files and showing
+    them in the GUI. Afterwards, report user's chosen settings and, if a file
+    for the BM settings is provided, save the most common settings to file.
+    """
     parser = argparse.ArgumentParser(description="Read images taken from a "
                                      "calibrated stereo pair, compute "
                                      "disparity maps from them and show them "
@@ -212,6 +246,9 @@ def main():
                         "pair are stored.")
     parser.add_argument("image_folder",
                         help="Directory where input images are stored.")
+    parser.add_argument("--bm_settings",
+                        help="File to save most commonly chosen block matcher "
+                        "settings to.", default="")
     args = parser.parse_args()
 
     calibration = calibrate_stereo.StereoCalibration(
@@ -235,11 +272,20 @@ def main():
         stereo_bm_presets.append(preset)
         search_ranges.append(search_range)
         window_sizes.append(size)
-    for name, values in (("Stereo BM presets", stereo_bm_presets),
-                         ("Search ranges", search_ranges),
-                         ("Window sizes", window_sizes)):
-        report_variable(name, values)
-        print()
-        
+    pretty_settings_names = {"stereo_bm_preset": "Stereo BM presets",
+                             "search_range": "Search ranges",
+                             "window_size": "Window sizes"}
+    common_settings = {}
+    for variable, values in (("stereo_bm_preset", stereo_bm_presets),
+                         ("search_range", search_ranges),
+                         ("window_size", window_sizes)):
+        (common_setting,
+         report) = report_variable(pretty_settings_names[variable], values)
+        common_settings[variable] = common_setting
+        print(report)
+    if args.bm_settings:
+        with open(args.bm_settings, "w") as settings_file:
+            simplejson.dump(common_settings, settings_file)
+
 if __name__ == "__main__":
     main()
