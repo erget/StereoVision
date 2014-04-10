@@ -56,12 +56,19 @@ def main():
                         help="Device numbers for the right camera.")
     parser.add_argument("num_pictures", type=int, help="Number of valid "
                         "chessboard pictures that should be taken.")
-    parser.add_argument("output_folder", help="Folder to save the results to.")
+    parser.add_argument("output_folder", help="Folder to save the images to.")
+    parser.add_argument("--calibrate", help="Calibrate cameras after "
+                        "collecting required pictures.", action="store_true")
+    parser.add_argument("--calibration-folder", help="Folder to save camera "
+                        "calibration to.")
     args = parser.parse_args()
+    if (args.calibrate and not args.calibration_folder or
+            args.calibrate and not args.square_size):
+        args.print_help()
+
     progress = progressbar.ProgressBar(maxval=args.num_pictures,
                                        widgets=[progressbar.Bar("=", "[", "]"),
                                                 " ", progressbar.Percentage()])
-
     if not os.path.exists(args.output_folder):
         os.makedirs(args.output_folder)
     with ChessboardFinder((args.left, args.right)) as pair:
@@ -75,6 +82,11 @@ def main():
             progress.update(progress.maxval - (args.num_pictures - i))
             time.sleep(5)
         progress.finish()
+    if args.calibrate:
+        args.input_files = calibrate_stereo.find_files(args.output_folder)
+        args.output_folder = args.calibration_folder
+        args.show_chessboards = True
+        calibrate_stereo.calibrate_folder(args)
 
 if __name__ == "__main__":
     main()
