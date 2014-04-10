@@ -7,7 +7,6 @@ converting the generated 3D coordinates into a point cloud. I borrowed some
 numpy magic from there.
 """
 
-import chessboard_photos
 import os
 
 import argparse
@@ -313,6 +312,16 @@ def calibrate_folder(args):
           "{} pixels. This should be as small as possible.".format(avg_error))
     calibration.export(args.output_folder)
 
+CHESSBOARD_ARGUMENTS = argparse.ArgumentParser(add_help=False)
+CHESSBOARD_ARGUMENTS.add_argument("--rows", type=int,
+                                  help="Number of inside corners in the "
+                                  "chessboard's rows.", default=9)
+CHESSBOARD_ARGUMENTS.add_argument("--columns", type=int,
+                                  help="Number of inside corners in the "
+                                  "chessboard's columns.", default=6)
+CHESSBOARD_ARGUMENTS.add_argument("--square-size", help="Size of chessboard "
+                                  "squares in cm.", type=float, default=1.8)
+
 def main():
     """
     Read all images in input folder and produce camera calibration files.
@@ -325,9 +334,7 @@ def main():
     parser = argparse.ArgumentParser(description="Read images taken with "
                                      "stereo pair and use them to compute "
                                      "camera calibration.",
-                             parents=[chessboard_photos.CHESSBOARD_ARGUMENTS])
-    parser.add_argument("square_size", help="Size of chessboard squares in cm.",
-                        type=float)
+                             parents=[CHESSBOARD_ARGUMENTS])
     parser.add_argument("input_folder", help="Input folder assumed to contain "
                         "only stereo images taken with the stereo camera pair "
                         "that should be calibrated.")

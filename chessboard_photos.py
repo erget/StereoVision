@@ -3,6 +3,7 @@
 Module for finding chessboards with a stereo rig.
 """
 
+import calibrate_stereo
 import os
 import time
 import webcams
@@ -43,20 +44,12 @@ PROGRAM_DESCRIPTION=(
 "has been taken."
 )
 
-CHESSBOARD_ARGUMENTS = argparse.ArgumentParser(add_help=False)
-CHESSBOARD_ARGUMENTS.add_argument("--rows", type=int,
-                                  help="Number of inside corners in the "
-                                  "chessboard's rows.", default=9)
-CHESSBOARD_ARGUMENTS.add_argument("--columns", type=int,
-                                  help="Number of inside corners in the "
-                                  "chessboard's columns.", default=6)
-
 def main():
     """
     Take a pictures with chessboard visible to both cameras in a stereo pair.
     """
     parser = argparse.ArgumentParser(description=PROGRAM_DESCRIPTION,
-                                     parents=[CHESSBOARD_ARGUMENTS])
+                                parents=[calibrate_stereo.CHESSBOARD_ARGUMENTS])
     parser.add_argument("left", metavar="left", type=int,
                         help="Device numbers for the left camera.")
     parser.add_argument("right", metavar="right", type=int,
