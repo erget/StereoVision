@@ -3,28 +3,31 @@
 Module for finding chessboards with a stereo rig.
 """
 
-import argparse
 import os
 import time
-
-import cv2
-
 import webcams
+
+import argparse
+import cv2
+import progressbar
 
 
 class ChessboardFinder(webcams.StereoPair):
     """A ``StereoPair`` that can find chessboards."""
 
-    def get_chessboard(self, columns, rows):
+    def get_chessboard(self, columns, rows, show=False):
         """
         Take a picture with a chessboard visible in both captures.
 
         ``columns`` and ``rows`` should be the number of inside corners in the
-        chessboard's columns and rows.
+        chessboard's columns and rows. ``show`` determines whether the frames
+        are shown while the cameras search for a chessboard.
         """
         found_chessboard = [False, False]
         while not all(found_chessboard):
             frames = self.get_frames()
+            if show:
+                self.show_frames(1)
             for i, frame in enumerate(frames):
                 (found_chessboard[i],
                 corners) = cv2.findChessboardCorners(frame, (columns, rows),
