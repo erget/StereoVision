@@ -206,8 +206,8 @@ class StereoCalibrator(object):
         """Calibrate cameras based on found chessboard corners."""
         criteria = (cv2.TERM_CRITERIA_MAX_ITER + cv2.TERM_CRITERIA_EPS,
                     100, 1e-5)
-        flags=(cv2.CALIB_FIX_ASPECT_RATIO + cv2.CALIB_ZERO_TANGENT_DIST +
-               cv2.CALIB_SAME_FOCAL_LENGTH)
+        flags = (cv2.CALIB_FIX_ASPECT_RATIO + cv2.CALIB_ZERO_TANGENT_DIST +
+                 cv2.CALIB_SAME_FOCAL_LENGTH)
         calib = StereoCalibration()
         (calib.cam_mats["left"], calib.dist_coefs["left"],
          calib.cam_mats["right"], calib.dist_coefs["right"],

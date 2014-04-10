@@ -30,6 +30,8 @@ class StereoPair(object):
     def __exit__(self, type, value, traceback):
         for capture in self.captures:
             capture.release()
+        for window in self.windows:
+            cv2.destroyWindow(window)
     
     def get_frames(self):
         """Get current frames from cameras."""
