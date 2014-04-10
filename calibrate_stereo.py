@@ -274,6 +274,44 @@ class StereoCalibrator(object):
         total_points = self.image_count * len(self.object_points)
         return total_error / total_points
 
+def calibrate_folder(args):
+    """
+    Calibrate camera based on chessboard images, write results to output folder.
+
+    All images are read from disk. Chessboard points are found and used to
+    calibrate the stereo pair. Finally, the calibration is written to the folder
+    specified in ``args``.
+
+    ``args`` needs to contain the following fields:
+        input_files: List of paths to input files
+        rows: Number of rows in chessboard
+        columns: Number of columns in chessboard
+        square_size: Size of chessboard squares in cm
+        output_folder: Folder to write calibration to
+    """
+    height, width = cv2.imread(args.input_files[0]).shape[:2]
+    calibrator = StereoCalibrator(args.rows, args.columns, args.square_size,
+                                  (width, height))
+    progress = progressbar.ProgressBar(maxval=len(args.input_files),
+                                       widgets=[progressbar.Bar("=", "[", "]"),
+                                                " ", progressbar.Percentage()])
+    print("Reading input files...")
+    while args.input_files:
+        left, right = args.input_files[:2]
+        img_left, im_right = cv2.imread(left), cv2.imread(right)
+        calibrator.add_corners((img_left, im_right),
+                               show_results=args.show_chessboards)
+        args.input_files = args.input_files[2:]
+        progress.update(progress.maxval - len(args.input_files))
+
+    progress.finish()
+    print("Calibrating cameras. This can take a while.")
+    calibration = calibrator.calibrate_cameras()
+    avg_error = calibrator.check_calibration(calibration)
+    print("The average error between chessboard points and their epipolar "
+          "lines is \n"
+          "{} pixels. This should be as small as possible.".format(avg_error))
+    calibration.export(args.output_folder)
 
 def main():
     """
@@ -299,29 +337,8 @@ def main():
                         "chessboard corners.", action="store_true")
     args = parser.parse_args()
 
-    input_files = find_files(args.input_folder)
-    height, width = cv2.imread(input_files[0]).shape[:2]
-    calibrator = StereoCalibrator(args.rows, args.columns, args.square_size,
-                                  (width, height))
-    progress = progressbar.ProgressBar(maxval=len(input_files),
-                                       widgets=[progressbar.Bar("=", "[", "]"),
-                                                " ", progressbar.Percentage()])
-    print("Reading input files...")
-    while input_files:
-        left, right = input_files[:2]
-        img_left, im_right = cv2.imread(left), cv2.imread(right)
-        calibrator.add_corners((img_left, im_right),
-                               show_results=args.show_chessboards)
-        input_files = input_files[2:]
-        progress.update(progress.maxval - len(input_files))
-    progress.finish()
-    print("Calibrating cameras. This can take a while.")
-    calibration = calibrator.calibrate_cameras()
-    avg_error = calibrator.check_calibration(calibration)
-    print("The average error between chessboard points and their epipolar "
-          "lines is \n"
-          "{} pixels. This should be as small as possible.".format(avg_error))
-    calibration.export(args.output_folder)
+    args.input_files = find_files(args.input_folder)
+    calibrate_folder(args)
 
 if __name__ == "__main__":
     main()
