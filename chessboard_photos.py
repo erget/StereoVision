@@ -65,19 +65,23 @@ def main():
                         "chessboard pictures that should be taken.")
     parser.add_argument("output_folder", help="Folder to save the results to.")
     args = parser.parse_args()
+    progress = progressbar.ProgressBar(maxval=args.num_pictures,
+                                       widgets=[progressbar.Bar("=", "[", "]"),
+                                                " ", progressbar.Percentage()])
 
     if not os.path.exists(args.output_folder):
         os.makedirs(args.output_folder)
     with ChessboardFinder((args.left, args.right)) as pair:
         for i in range(args.num_pictures):
-            print("Capturing picture {}...".format(i + 1))
-            frames = pair.get_chessboard(args.columns, args.rows)
+            frames = pair.get_chessboard(args.columns, args.rows, True)
             for side, frame in zip(("left", "right"), frames):
                 number_string = str(i + 1).zfill(len(str(args.num_pictures)))
                 filename = "{}_{}.ppm".format(side, number_string)
                 output_path = os.path.join(args.output_folder, filename)
                 cv2.imwrite(output_path, frame)
+            progress.update(progress.maxval - (args.num_pictures - i))
             time.sleep(5)
+        progress.finish()
 
 if __name__ == "__main__":
     main()
