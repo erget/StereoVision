@@ -127,7 +127,7 @@ class CalibratedPair(webcams.StereoPair):
                 gray.append(cv2.cvtColor(side, cv2.COLOR_BGR2GRAY))
         else:
             gray = pair
-        return self.block_matcher.compute(gray[0], gray[1])
+        return self.block_matcher.compute(gray[0], gray[1], disptype=cv2.CV_32F)
     @property
     def search_range(self):
         """Number of disparities for ``block_matcher``."""
@@ -231,9 +231,16 @@ class StereoBMTuner(object):
             return
         self.update_disparity_map()
     def update_disparity_map(self):
-        """Update disparity map in GUI."""
+        """
+        Update disparity map in GUI.
+
+        The disparity image is normalized to the range 0-255 and then divided by
+        255, because OpenCV multiplies it by 255 when displaying. This is
+        because the pixels are stored as floating points.
+        """
         disparity = self.calibrated_pair.compute_disparity(self.pair)
-        cv2.imshow(self.window_name, disparity / 255.)
+        norm_coeff = 255 / disparity.max()
+        cv2.imshow(self.window_name, disparity * norm_coeff / 255)
         cv2.waitKey()
     def tune_pair(self, pair):
         """Tune a pair of images."""
