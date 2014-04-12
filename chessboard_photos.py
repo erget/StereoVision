@@ -3,12 +3,11 @@
 Module for finding chessboards with a stereo rig.
 """
 
+import argparse
 import calibrate_stereo
 import os
-import time
 import webcams
 
-import argparse
 import cv2
 import progressbar
 
@@ -57,13 +56,10 @@ def main():
     parser.add_argument("num_pictures", type=int, help="Number of valid "
                         "chessboard pictures that should be taken.")
     parser.add_argument("output_folder", help="Folder to save the images to.")
-    parser.add_argument("--calibrate", help="Calibrate cameras after "
-                        "collecting required pictures.", action="store_true")
     parser.add_argument("--calibration-folder", help="Folder to save camera "
                         "calibration to.")
     args = parser.parse_args()
-    if (args.calibrate and not args.calibration_folder or
-            args.calibrate and not args.square_size):
+    if (args.calibration_folder and not args.square_size):
         args.print_help()
 
     progress = progressbar.ProgressBar(maxval=args.num_pictures,
@@ -80,9 +76,10 @@ def main():
                 output_path = os.path.join(args.output_folder, filename)
                 cv2.imwrite(output_path, frame)
             progress.update(progress.maxval - (args.num_pictures - i))
-            time.sleep(5)
+            for i in range(10):
+                pair.show_frames(1)
         progress.finish()
-    if args.calibrate:
+    if args.calibration_folder:
         args.input_files = calibrate_stereo.find_files(args.output_folder)
         args.output_folder = args.calibration_folder
         args.show_chessboards = True
