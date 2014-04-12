@@ -7,9 +7,9 @@ converting the generated 3D coordinates into a point cloud. I borrowed some
 numpy magic from there.
 """
 
+import argparse
 import os
 
-import argparse
 import cv2
 import progressbar
 
@@ -118,6 +118,8 @@ class StereoCalibration(object):
                     self.__dict__[key] = np.load(filename)
     def export(self, output_folder):
         """Export matrices as *.npy files to an output folder."""
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
         self._interact_with_folder(output_folder, 'w')
     def load(self, input_folder):
         """Load values from *.npy files in ``input_folder``."""
