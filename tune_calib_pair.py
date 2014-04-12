@@ -52,11 +52,13 @@ class CalibratedPair(webcams.StereoPair):
     Should be initialized with a context manager to ensure that the camera
     connections are closed properly.
     """
+    #: Maximum SAD window size
+    max_winsize = 255
     def __init__(self, devices,
                  calibration,
                  stereo_bm_preset=cv2.STEREO_BM_BASIC_PRESET,
-                 search_range=0,
-                 window_size=5,
+                 search_range=80,
+                 window_size=21,
                  bm_settings=None):
         """
         Initialize cameras.
@@ -112,7 +114,10 @@ class CalibratedPair(webcams.StereoPair):
         Compute disparity from image pair (left, right).
 
         First, convert images to grayscale if needed. Then pass to the
-        ``CalibratedPair``'s ``block_matcher`` for stereo matching.
+        ``CalibratedPair``'s ``block_matcher`` for stereo matching. The
+        disparity map is returned as a single-channel 32 floating point image
+        so that it does not have to be rescaled when passed to
+        ``cv2.reprojectImageTo3D``.
 
         If you wish to visualize the image, remember to normalize it to 0-255.
         """
@@ -142,12 +147,12 @@ class CalibratedPair(webcams.StereoPair):
     @window_size.setter
     def window_size(self, value):
         """Set search window size and update ``block_matcher``."""
-        if value > 4 and value < 22 and value % 2:
+        if value > 4 and value < self.max_winsize and value % 2:
             self._window_size = value
             self.replace_block_matcher()
         else:
             raise InvalidWindowSize("Window size must be an odd number between "
-                                    "5 and 21 (inclusive).")
+                                    "0 and {}.".format(self.max_winsize + 1))
     @property
     def stereo_bm_preset(self):
         """Stereo BM preset used by ``block_matcher``."""
@@ -180,20 +185,28 @@ class StereoBMTuner(object):
     #: Window to show results in
     window_name = "Stereo BM Tuner"
     def __init__(self, calibrated_pair, image_pair):
-        """Initialize tuner with a ``CalibratedPair`` and tune given pair."""
+        """
+        Initialize tuner with a ``CalibratedPair`` and tune given pair.
+
+        ``ndis`` is limited to the number of pixels equal to or less than an
+        individual image's shortest dimension that is evenly divisible by 16.
+        """
         #: Calibrated stereo pair to find Stereo BM settings for
         self.calibrated_pair = calibrated_pair
         #: (left, right) image pair to find disparity between
         self.pair = image_pair
         cv2.namedWindow(self.window_name)
+        shortest_dimension = min(self.pair[0].shape[:2])
         cv2.createTrackbar("cam_preset", self.window_name,
                            self.calibrated_pair.stereo_bm_preset, 3,
                            self.set_bm_preset)
         cv2.createTrackbar("ndis", self.window_name,
-                           self.calibrated_pair.search_range, 160,
+                           self.calibrated_pair.search_range,
+                           shortest_dimension / 16 * 16,
                            self.set_search_range)
         cv2.createTrackbar("winsize", self.window_name,
-                           self.calibrated_pair.window_size, 21,
+                           self.calibrated_pair.window_size,
+                           self.calibrated_pair.max_winsize,
                            self.set_window_size)
         self.tune_pair(image_pair)
     def set_bm_preset(self, preset):
