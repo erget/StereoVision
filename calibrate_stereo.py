@@ -54,23 +54,23 @@ class StereoCalibration(object):
         folder is provided, load *.npy files from that folder. An input folder
         overwrites a calibration object.
         """
-        #: Camera matrices
+        #: Camera matrices (M)
         self.cam_mats = {"left": None, "right": None}
-        #: Distortion coefficients
+        #: Distortion coefficients (D)
         self.dist_coefs = {"left": None, "right": None}
-        #: Rotation matrix
+        #: Rotation matrix (R)
         self.rot_mat = None
-        #: Translation vector
+        #: Translation vector (T)
         self.trans_vec = None
-        #: Essential matrix
+        #: Essential matrix (E)
         self.e_mat = None
-        #: Fundamental matrix
+        #: Fundamental matrix (F)
         self.f_mat = None
-        #: Rectification transforms
+        #: Rectification transforms (3x3 rectification matrix R1 / R2)
         self.rect_trans = {"left": None, "right": None}
-        #: Projection matrices
+        #: Projection matrices (3x4 projection matrix P1 / P2)
         self.proj_mats = {"left": None, "right": None}
-        #: Disparity to depth mapping matrix
+        #: Disparity to depth mapping matrix (4x4 matrix, Q)
         self.disp_to_depth_mat = None
         #: Bounding boxes of valid pixels
         self.valid_boxes = {"left": None, "right": None}
