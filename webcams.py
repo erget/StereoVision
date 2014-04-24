@@ -8,45 +8,45 @@ import cv2
 class StereoPair(object):
     """
     A stereo pair of cameras.
-    
+
     Should be initialized with a context manager to ensure that the cameras are
     freed properly after use.
     """
-    
+
     def __init__(self, devices):
         """
         Initialize cameras.
-        
+
         ``devices`` is an iterable containing the device numbers.
         """
         #: Video captures associated with the ``StereoPair``
         self.captures = [cv2.VideoCapture(device) for device in devices]
         #: Window names for showing captured frame from each camera
-        self.windows = ["Window {}".format(device) for device in devices]
-        
+        self.windows = ["{} camera".format(side) for side in ("Left", "Right")]
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, type, value, traceback):
         for capture in self.captures:
             capture.release()
         for window in self.windows:
             cv2.destroyWindow(window)
-    
+
     def get_frames(self):
         """Get current frames from cameras."""
         return [capture.read()[1] for capture in self.captures]
-    
+
     def show_frames(self, wait=0):
         """
         Show current frames from cameras.
-        
+
         ``wait`` is the wait interval before the window closes.
         """
         for window, frame in zip(self.windows, self.get_frames()):
             cv2.imshow(window, frame)
         cv2.waitKey(wait)
-        
+
     def show_videos(self):
         """Show video from cameras."""
         while True:
@@ -66,7 +66,8 @@ def main():
     parser = argparse.ArgumentParser(description="Show video from two "
                                      "webcams.\n\nPress 'q' to exit.")
     parser.add_argument("devices", type=int, nargs=2, help="Device numbers "
-                        "for the cameras that should be accessed.")
+                        "for the cameras that should be accessed in order "
+                        " (left, right).")
     args = parser.parse_args()
 
     with StereoPair(args.devices) as pair:

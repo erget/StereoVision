@@ -173,6 +173,16 @@ class CalibratedPair(webcams.StereoPair):
         self.block_matcher = cv2.StereoBM(preset=self._bm_preset,
                                           ndisparities=self._search_range,
                                           SADWindowSize=self._window_size)
+    def compute_3d(self, disparity):
+        """Compute dense 3D image from a disparity image."""
+        depth_map = cv2.reprojectImageTo3D(disparity,
+                                           self.calibration.disp_to_depth_mat,
+                                           handleMissingValues=True)
+        return depth_map
+    def show_3d(self):
+        """Show 3D coordinate map computed from real time observations."""
+        raise NotImplementedError
+
 
 class StereoBMTuner(object):
     """
