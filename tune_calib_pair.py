@@ -127,7 +127,7 @@ class CalibratedPair(webcams.StereoPair):
                 gray.append(cv2.cvtColor(side, cv2.COLOR_BGR2GRAY))
         else:
             gray = pair
-        return self.block_matcher.compute(gray[0], gray[1], disptype=cv2.CV_32F)
+        return self.block_matcher.compute(gray[0], gray[1])
     @property
     def search_range(self):
         """Number of disparities for ``block_matcher``."""
@@ -249,8 +249,7 @@ class StereoBMTuner(object):
         because the pixels are stored as floating points.
         """
         disparity = self.calibrated_pair.compute_disparity(self.pair)
-        norm_coeff = 255 / disparity.max()
-        cv2.imshow(self.window_name, disparity * norm_coeff / 255)
+        cv2.imshow(self.window_name, disparity * 255)
         cv2.waitKey()
     def tune_pair(self, pair):
         """Tune a pair of images."""
