@@ -2,6 +2,8 @@
 """A base class for working with stereo cameras."""
 
 import argparse
+import os
+import time
 
 import cv2
 
@@ -68,11 +70,27 @@ def main():
     parser.add_argument("devices", type=int, nargs=2, help="Device numbers "
                         "for the cameras that should be accessed in order "
                         " (left, right).")
+    parser.add_argument("--output_folder",
+                        help="Folder to write output images to.")
+    parser.add_argument("--interval", type=float, default=1,
+                        help="Interval (s) to take pictures in.")
     args = parser.parse_args()
 
     with StereoPair(args.devices) as pair:
-        pair.show_videos()
-    print("Cameras closed.")
+        if not args.output_folder:
+            pair.show_videos()
+        else:
+            i = 1
+            while True:
+                start = time.time()
+                while time.time() < start + args.interval:
+                    pair.show_frames(1)
+                images = pair.get_frames()
+                for side, image in zip(("left", "right"), images):
+                    filename = "{}_{}.ppm".format(side, i)
+                    output_path = os.path.join(args.output_folder, filename)
+                    cv2.imwrite(output_path, image)
+                i += 1
 
 if __name__ == "__main__":
     main()

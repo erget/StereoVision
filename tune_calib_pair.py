@@ -265,8 +265,7 @@ class StereoBMTuner(object):
         because the pixels are stored as floating points.
         """
         disparity = self.calibrated_pair.compute_disparity(self.pair)
-        norm_coeff = 255 / disparity.max()
-        cv2.imshow(self.window_name, disparity * norm_coeff / 255)
+        cv2.imshow(self.window_name, disparity * 255)
         cv2.waitKey()
     def tune_pair(self, pair):
         """Tune a pair of images."""
