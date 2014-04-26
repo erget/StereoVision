@@ -239,6 +239,14 @@ class StereoCalibrator(object):
                                                         calib.proj_mats[side],
                                                         self.image_size,
                                                         cv2.CV_32FC1)
+        # This is replaced because my results were always bad. Estimates are
+        # taken from the OpenCV samples.
+        width, height = self.image_size
+        focal_length = 0.8 * width
+        calib.disp_to_depth_mat = np.float32([[1, 0, 0, -0.5 * width],
+                                              [0, -1, 0, 0.5 * height],
+                                              [0, 0, 0, -focal_length],
+                                              [0, 0, 1, 0]])
         return calib
     def check_calibration(self, calibration):
         """
