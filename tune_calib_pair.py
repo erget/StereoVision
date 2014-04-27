@@ -3,14 +3,14 @@
 class for working with calibrated stereo camera pairs.
 '''
 
+import argparse
 from calibrate_stereo import find_files, show_image
 import calibrate_stereo
+import point_cloud
 import webcams
 
-import argparse
 import cv2
 import simplejson
-
 
 def report_variable(variable_name, variable):
     """
@@ -37,15 +37,6 @@ def report_variable(variable_name, variable):
         report.append("{}|{}".format(left_column, right_column))
     return value_frequency[frequencies[0]], "\n".join(report + ["\n"])
 
-class BadBlockMatcherArgument(Exception):
-    """Bad argument supplied for ``block_matcher`` in a ``CalibratedPair``."""
-class InvalidBMPreset(BadBlockMatcherArgument):
-    """Invalid BM preset."""
-class InvalidSearchRange(BadBlockMatcherArgument):
-    """Invalid search range."""
-class InvalidWindowSize(BadBlockMatcherArgument):
-    """Invalid search range."""
-
 class CalibratedPair(webcams.StereoPair):
     """
     A stereo pair of calibrated cameras.
@@ -53,151 +44,32 @@ class CalibratedPair(webcams.StereoPair):
     Should be initialized with a context manager to ensure that the camera
     connections are closed properly.
     """
-    #: Maximum SAD window size
-    max_winsize = 255
-    @property
-    def search_range(self):
-        """Number of disparities for ``block_matcher``."""
-        return self._search_range
-    @search_range.setter
-    def search_range(self, value):
-        """Set ``search_range`` to multiple of 16, replace ``block_matcher``."""
-        if value == 0 or not value % 16:
-            self._search_range = value
-            self.replace_bm()
-        else:
-            raise InvalidSearchRange("Search range must be a multiple of 16.")
-    @property
-    def window_size(self):
-        """Search window size."""
-        return self._window_size
-    @window_size.setter
-    def window_size(self, value):
-        """Set search window size and update ``block_matcher``."""
-        if value > 4 and value < self.max_winsize and value % 2:
-            self._window_size = value
-            self.replace_bm()
-        else:
-            raise InvalidWindowSize("Window size must be an odd number between "
-                                    "0 and {}.".format(self.max_winsize + 1))
-    @property
-    def stereo_bm_preset(self):
-        """Stereo BM preset used by ``block_matcher``."""
-        return self._bm_preset
-    @stereo_bm_preset.setter
-    def stereo_bm_preset(self, value):
-        """Set stereo BM preset and update ``block_matcher``."""
-        if value in (cv2.STEREO_BM_BASIC_PRESET,
-                     cv2.STEREO_BM_FISH_EYE_PRESET,
-                     cv2.STEREO_BM_NARROW_PRESET):
-            self._bm_preset = value
-            self.replace_bm()
-        else:
-            raise InvalidBMPreset("Stereo BM preset must be defined as "
-                                  "cv2.STEREO_BM_*_PRESET.")
-    def __init__(self, devices,
-                 calibration,
-                 stereo_bm_preset=cv2.STEREO_BM_BASIC_PRESET,
-                 search_range=80,
-                 window_size=21,
-                 bm_settings=None):
+    def __init__(self, devices, calibration, block_matcher):
         """
         Initialize cameras.
 
         ``devices`` is an iterable of the device numbers. If you want to use the
         ``CalibratedPair`` in offline mode, pass None.
-        ``calibration`` is a StereoCalibration object. ``stereo_bm_preset``,
-        ``search_range`` and ``window_size`` are parameters for the
-        ``block_matcher``.
-
-        Settings for the block matcher can be loaded by passing a JSON file
-        boject as ``bm_settings``.
+        ``calibration`` is a StereoCalibration object.
+        ``block_matcher`` is a BlockMatcher object.
         """
         if devices:
             super(CalibratedPair, self).__init__(devices)
-        #: ``StereoCalibration`` object holding the camera pair's calibration.
+        #: ``StereoCalibration`` object holding the camera pair's calibration
         self.calibration = calibration
-        self._bm_preset = cv2.STEREO_BM_BASIC_PRESET
-        self._search_range = 0
-        self._window_size = 5
-        #: OpenCV camera type for ``block_matcher``
-        self.stereo_bm_preset = stereo_bm_preset
-        #: Number of disparities for ``block_matcher``
-        self.search_range = search_range
-        #: Search window size for ``block_matcher``
-        self.window_size = window_size
-        #: ``cv2.StereoBM`` object for block matching.
-        self.block_matcher = cv2.StereoBM(self.stereo_bm_preset,
-                                          self.search_range,
-                                          self.window_size)
-        if bm_settings:
-            self.load_bm_settings(bm_settings)
-    def load_bm_settings(self, bm_settings):
-        """Load block matcher settings from a file object."""
-        with open(bm_settings) as settings_file:
-            settings = simplejson.load(settings_file)
-            self.stereo_bm_preset = settings["stereo_bm_preset"]
-            self.search_range = settings["search_range"]
-            self.window_size = settings["window_size"]
-    def replace_bm(self):
-        """Replace ``block_matcher`` with current values."""
-        self.block_matcher = cv2.StereoBM(preset=self._bm_preset,
-                                          ndisparities=self._search_range,
-                                          SADWindowSize=self._window_size)
-    def save_bm_settings(self, settings_file):
-        """Save block matcher settings to a file object."""
-        with open(settings_file, "w") as settings_file:
-            settings = {"stereo_bm_preset": self.stereo_bm_preset,
-                        "search_range": self.search_range,
-                        "window_size": self.window_size}
-            simplejson.dump(settings, settings_file)
+        #: ``BlockMatcher`` object for computing disparity and point cloud
+        self.block_matcher = block_matcher
     def get_frames(self):
         """Rectify and return current frames from cameras."""
         frames = super(CalibratedPair, self).get_frames()
         return self.calibration.rectify(frames)
-    def compute_disparity(self, pair):
-        """
-        Compute disparity from image pair (left, right).
-
-        First, convert images to grayscale if needed. Then pass to the
-        ``CalibratedPair``'s ``block_matcher`` for stereo matching. The
-        disparity map is returned as a single-channel 32 floating point image
-        so that it does not have to be rescaled when passed to
-        ``cv2.reprojectImageTo3D``.
-
-        If you wish to visualize the image, remember to normalize it to 0-255.
-        """
-        gray = []
-        if pair[0].ndim == 3:
-            for side in pair:
-                gray.append(cv2.cvtColor(side, cv2.COLOR_BGR2GRAY))
-        else:
-            gray = pair
-        return self.block_matcher.compute(gray[0], gray[1], disptype=cv2.CV_32F)
-    def get_disparity(self):
-        """Get disparity map from current camera view."""
-        pair = self.get_frames()
-        return self.compute_disparity(pair)
-    def show_disparity(self, pair=None, wait=0):
-        """Show disparity map from current camera view or given image pair."""
-        if pair is None:
-            disparity = self.get_disparity()
-        else:
-            disparity = self.compute_disparity(pair)
-        show_image(disparity * 255, "Disparity", wait)
-    def compute_3d(self, disparity):
-        """Compute 3D point cloud from a disparity image."""
-        depth_map = cv2.reprojectImageTo3D(disparity,
-                                           self.calibration.disp_to_depth_mat,
-                                           handleMissingValues=True)
-        return depth_map
-    def get_3d(self):
-        """Get 3D point cloud from current camera view."""
-        depth = self.compute_3d(self.get_disparity())
-        return depth
-    def show_3d(self, disparity=None):
-        """Show point cloud from current observations or given disparity map."""
-        raise NotImplementedError
+    def get_point_cloud(self, pair):
+        """Get 3D point cloud from image pair."""
+        disparity = self.block_matcher.compute_disparity(pair)
+        points = self.block_matcher.compute_3d(disparity,
+                                           self.calibration.disp_to_depth_mat)
+        colors = cv2.cvtColor(pair[0], cv2.COLOR_BGR2RGB)
+        return point_cloud.PointCloud(points, colors)
 
 
 class StereoBMTuner(object):
