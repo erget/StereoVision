@@ -156,7 +156,8 @@ class StereoBM(BlockMatcher):
                 gray.append(cv2.cvtColor(side, cv2.COLOR_BGR2GRAY))
         else:
             gray = pair
-        return self.block_matcher.compute(gray[0], gray[1], disptype=cv2.CV_32F)
+        return self.block_matcher.compute(gray[0], gray[1],
+                                          disptype=cv2.CV_32F) / 32
 
 class StereoSGBM(BlockMatcher):
     """A semi-global block matcher."""
