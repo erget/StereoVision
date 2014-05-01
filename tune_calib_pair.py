@@ -14,31 +14,6 @@ from webcams import StereoPair
 import cv2
 
 
-def report_variable(variable_name, variable):
-    """
-    Check how often each parameter value was chosen.
-
-    Return most common setting and report over all settings chosen.
-    """
-    report = []
-    unique_values = list(set(variable))
-    value_frequency = {}
-    for value in unique_values:
-        value_frequency[variable.count(value)] = value
-    frequencies = value_frequency.keys()
-    frequencies.sort(reverse=True)
-    header = "{} value | Selection frequency".format(variable_name)
-    left_column_width = len(header[:-21])
-    right_column_width = 21
-    report.append(header)
-    report.append("{}|{}".format("-" * left_column_width, "-" *
-                                 right_column_width))
-    for frequency in frequencies:
-        left_column = str(value_frequency[frequency]).center(left_column_width)
-        right_column = str(frequency).center(right_column_width)
-        report.append("{}|{}".format(left_column, right_column))
-    return value_frequency[frequencies[0]], "\n".join(report + ["\n"])
-
 class CalibratedPair(StereoPair):
     """
     A stereo pair of calibrated cameras.
