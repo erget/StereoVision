@@ -151,8 +151,8 @@ class BMTuner(object):
         return "\n".join(report)
 
 STEREO_SGBM_FLAG = ArgumentParser(add_help=False)
-STEREO_SGBM_FLAG.add_argument("--use_sgbm", help="Use StereoSGBM rather than "
-                              "StereoBM block matcher.", action="store_true")
+STEREO_SGBM_FLAG.add_argument("--use_stereobm", help="Use StereoBM rather than "
+                              "StereoSGBM block matcher.", action="store_true")
 
 def main():
     """
@@ -182,10 +182,10 @@ def main():
 
     calibration = StereoCalibration(input_folder=args.calibration_folder)
     input_files = find_files(args.image_folder)
-    if args.use_sgbm:
-        block_matcher = StereoSGBM()
-    else:
+    if args.use_stereobm:
         block_matcher = StereoBM()
+    else:
+        block_matcher = StereoSGBM()
     image_pair = [cv2.imread(image) for image in input_files[:2]]
     input_files = input_files[2:]
     rectified_pair = calibration.rectify(image_pair)

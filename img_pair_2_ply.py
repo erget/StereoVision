@@ -26,10 +26,10 @@ def main():
 
     image_pair = [cv2.imread(image) for image in [args.left, args.right]]
     calibration_folder = args.calibration
-    if args.use_sgbm:
-        block_matcher = StereoSGBM()
-    else:
+    if args.use_stereobm:
         block_matcher = StereoBM()
+    else:
+        block_matcher = StereoSGBM()
     if args.bm_settings:
         block_matcher.load_settings(args.bm_settings)
 
