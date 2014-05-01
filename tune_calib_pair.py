@@ -3,14 +3,16 @@
 class for working with calibrated stereo camera pairs.
 '''
 
-import argparse
-from calibrate_stereo import find_files, show_image
-import calibrate_stereo
-import point_cloud
-import webcams
+from argparse import ArgumentParser
+from blockmatchers import BadBlockMatcherArgument, StereoBM, StereoSGBM
+from calibrate_stereo import StereoCalibration
+from calibrate_stereo import find_files
+from functools import partial
+from point_cloud import PointCloud
+from webcams import StereoPair
 
 import cv2
-import simplejson
+
 
 def report_variable(variable_name, variable):
     """
@@ -37,7 +39,7 @@ def report_variable(variable_name, variable):
         report.append("{}|{}".format(left_column, right_column))
     return value_frequency[frequencies[0]], "\n".join(report + ["\n"])
 
-class CalibratedPair(webcams.StereoPair):
+class CalibratedPair(StereoPair):
     """
     A stereo pair of calibrated cameras.
 
@@ -69,10 +71,9 @@ class CalibratedPair(webcams.StereoPair):
         points = self.block_matcher.compute_3d(disparity,
                                            self.calibration.disp_to_depth_mat)
         colors = cv2.cvtColor(pair[0], cv2.COLOR_BGR2RGB)
-        return point_cloud.PointCloud(points, colors)
+        return PointCloud(points, colors)
 
-
-class StereoBMTuner(object):
+class BMTuner(object):
     """
     A class for tuning Stereo BM settings.
 
@@ -81,51 +82,37 @@ class StereoBMTuner(object):
     stereo block matcher.
     """
     #: Window to show results in
-    window_name = "Stereo BM Tuner"
-    def __init__(self, calibrated_pair, image_pair):
-        """
-        Initialize tuner with a ``CalibratedPair`` and tune given pair.
-
-        ``ndis`` is limited to the number of pixels equal to or less than an
-        individual image's shortest dimension that is evenly divisible by 16.
-        """
-        #: Calibrated stereo pair to find Stereo BM settings for
-        self.calibrated_pair = calibrated_pair
+    window_name = "BM Tuner"
+    def __init__(self, block_matcher, calibration, image_pair):
+        """Initialize tuner with a ``CalibratedPair`` and tune given pair."""
+        #: Stereo calibration to find Stereo BM settings for
+        self.calibration = calibration
         #: (left, right) image pair to find disparity between
         self.pair = image_pair
+        #: Block matcher to be tuned
+        self.block_matcher = block_matcher
+        #: Shortest dimension of image
+        self.shortest_dimension = min(self.pair[0].shape[:2])
         cv2.namedWindow(self.window_name)
-        shortest_dimension = min(self.pair[0].shape[:2])
-        cv2.createTrackbar("cam_preset", self.window_name,
-                           self.calibrated_pair.stereo_bm_preset, 3,
-                           self.set_bm_preset)
-        cv2.createTrackbar("ndis", self.window_name,
-                           self.calibrated_pair.search_range,
-                           shortest_dimension / 16 * 16,
-                           self.set_search_range)
-        cv2.createTrackbar("winsize", self.window_name,
-                           self.calibrated_pair.window_size,
-                           self.calibrated_pair.max_winsize,
-                           self.set_window_size)
+        self._initialize_trackbars()
         self.tune_pair(image_pair)
-    def set_bm_preset(self, preset):
-        """Set ``search_range`` and update disparity image."""
+    def _initialize_trackbars(self):
+        """
+        Initialize trackbars by discovering settable parameters in BlockMatcher.
+        """
+        for parameter in self.block_matcher.parameter_maxima.keys():
+            maximum = self.block_matcher.parameter_maxima[parameter]
+            if not maximum:
+                maximum = self.shortest_dimension
+            cv2.createTrackbar(parameter, self.window_name,
+                               self.block_matcher.__getattribute__(parameter),
+                               maximum,
+                               partial(self._set_value, parameter))
+    def _set_value(self, parameter, new_value):
+        """Try setting new parameter on ``block_matcher`` and update map."""
         try:
-            self.calibrated_pair.stereo_bm_preset = preset
-        except InvalidBMPreset:
-            return
-        self.update_disparity_map()
-    def set_search_range(self, search_range):
-        """Set ``search_range`` and update disparity image."""
-        try:
-            self.calibrated_pair.search_range = search_range
-        except InvalidSearchRange:
-            return
-        self.update_disparity_map()
-    def set_window_size(self, window_size):
-        """Set ``window_size`` and update disparity image."""
-        try:
-            self.calibrated_pair.window_size = window_size
-        except InvalidWindowSize:
+            self.block_matcher.__setattr__(parameter, new_value)
+        except BadBlockMatcherArgument:
             return
         self.update_disparity_map()
     def update_disparity_map(self):
@@ -136,8 +123,9 @@ class StereoBMTuner(object):
         255, because OpenCV multiplies it by 255 when displaying. This is
         because the pixels are stored as floating points.
         """
-        disparity = self.calibrated_pair.compute_disparity(self.pair)
-        cv2.imshow(self.window_name, disparity * 255)
+        disparity = self.block_matcher.compute_disparity(self.pair)
+        norm_coeff = 255 / disparity.max()
+        cv2.imshow(self.window_name, disparity * norm_coeff / 255)
         cv2.waitKey()
     def tune_pair(self, pair):
         """Tune a pair of images."""

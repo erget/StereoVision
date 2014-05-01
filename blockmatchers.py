@@ -4,8 +4,10 @@ Wrapper classes for block matching algorithms.
 '''
 
 import cv2
-import numpy as np
 import simplejson
+
+import numpy as np
+
 
 class BadBlockMatcherArgument(Exception):
     """Bad argument supplied for a ``BlockMatcher``."""
@@ -47,8 +49,8 @@ class BlockMatcher(object):
 
     Getters and setters are used to protect the block matcher's parameters.
     """
-    #: Dictionary of parameter names associated with their (min, max) tuples
-    parameter_ranges = {}
+    #: Dictionary of parameter names associated with their maximum values
+    parameter_maxima = {}
     def __init__(self, settings=None):
         """Set block matcher parameters and load from file if necessary."""
         #: Block matcher object used for computing point clouds
@@ -65,7 +67,7 @@ class BlockMatcher(object):
     def save_settings(self, settings_file):
         """Save block matcher settings to a file object"""
         settings = {}
-        for parameter in self.parameter_ranges:
+        for parameter in self.parameter_maxima:
             settings[parameter] = self.__dict__[parameter]
         with open(settings_file, "w") as settings_file:
             simplejson.dump(settings, settings_file)
@@ -75,15 +77,16 @@ class BlockMatcher(object):
     def compute_disparity(self, image_pair):
         """Compute disparity map from image pair."""
         raise NotImplementedError
-    def compute_3d(self, disparity, disparity_to_depth_map):
+    @classmethod
+    def compute_3d(cls, disparity, disparity_to_depth_map):
         """Compute point cloud."""
         return cv2.reprojectImageTo3D(disparity, disparity_to_depth_map)
 
 class StereoBM(BlockMatcher):
     """A stereo block matching ``BlockMatcher``."""
-    parameter_ranges = {"search_range": (0, None),
-                        "window_size": (1, 255),
-                        "stereo_bm_prsheset": (1, 3)}
+    parameter_maxima = {"search_range": None,
+                       "window_size": 255,
+                       "stereo_bm_preset": cv2.STEREO_BM_NARROW_PRESET}
     @property
     def search_range(self):
         """Number of disparities for ``block_matcher``."""
@@ -103,11 +106,14 @@ class StereoBM(BlockMatcher):
     @window_size.setter
     def window_size(self, value):
         """Set search window size and update ``block_matcher``."""
-        if value > 4 and value < self.max_winsize and value % 2:
+        if (value > 4 and
+            value < self.parameter_maxima["window_size"] and
+            value % 2):
             self._window_size = value
         else:
             raise InvalidWindowSize("Window size must be an odd number between "
-                                    "0 and {}.".format(self.max_winsize + 1))
+                                    "0 and {}.".format(
+                                    self.parameter_maxima["window_size"] + 1))
         self.replace_bm()
     @property
     def stereo_bm_preset(self):
@@ -161,17 +167,16 @@ class StereoBM(BlockMatcher):
 
 class StereoSGBM(BlockMatcher):
     """A semi-global block matcher."""
-    parameter_ranges = {"minDisparity": (0, None),
-                      "numDisparities": (0, None),  # > 0, % 16 == 0
-                      "SADWindowSize": (1, 11),  # % 2 != 0, >= 1, 3 <= x <= 11
-                      "P1": (None, None),  # P1 & P2 are smoothing parameters
-                      "P2": (None, None),  # > P1
-                      "disp12MaxDiff": (None, None),  # Can be < 0
-                      "preFilterCap": (None, None),
-                      "uniquenessRatio": (5, 15),  # 5 <= x <= 15
-                      "speckleWindowSize": (0, 200),  # x == 0 || 50 <= x <= 200
-                      "speckleRange": (1, 2),  # 0 < x <= 2
-                      "fullDP": (0, 1)}  # True for full-scale two-pass dynamic algorithm
+    parameter_maxima = {"minDisparity": None,
+                       "numDisparities": None,
+                       "SADWindowSize": 11,
+                       "P1": None,
+                       "P2": None,
+                       "disp12MaxDiff": None,
+                       "uniquenessRatio": 15,
+                       "speckleWindowSize": 200,
+                       "speckleRange": 2,
+                       "fullDP": 1}
     @property
     def minDisparity(self):
         return self._min_disparity
