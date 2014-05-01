@@ -98,7 +98,7 @@ class BMTuner(object):
         """Save current state of ``block_matcher``."""
         for parameter in self.block_matcher.parameter_maxima.keys():
             self.bm_settings[parameter].append(
-                                   self.block_matcher.__getattribute__(parameter))
+                               self.block_matcher.__getattribute__(parameter))
     def update_disparity_map(self):
         """
         Update disparity map in GUI.
@@ -126,9 +126,8 @@ class BMTuner(object):
         which is the ``BlockMatcher``'s default setting.
         """
         self._save_bm_state()
-
         report = []
-        settings_list = self.bm_settings[parameter]
+        settings_list = self.bm_settings[parameter][1:]
         unique_values = list(set(settings_list))
         value_frequency = {}
         for value in unique_values:
@@ -146,11 +145,14 @@ class BMTuner(object):
                                                              left_column_width)
             right_column = str(frequency).center(right_column_width)
             report.append("{}|{}".format(left_column, right_column))
-
-        # Remove settings
+        # Remove newest settings
         for param in self.block_matcher.parameter_maxima.keys():
             self.bm_settings[param].pop(-1)
-        return "\n".join(report + ["\n"])
+        return "\n".join(report)
+
+STEREO_SGBM_FLAG = ArgumentParser(add_help=False)
+STEREO_SGBM_FLAG.add_argument("--use_sgbm", help="Use StereoSGBM rather than "
+                              "StereoBM block matcher.", action="store_true")
 
 def main():
     """
@@ -167,7 +169,7 @@ def main():
                            "stereo pair, compute disparity maps from them and "
                            "show them interactively to the user, allowing the "
                            "user to tune the stereo block matcher settings in "
-                           "the GUI.")
+                           "the GUI.", parents=[STEREO_SGBM_FLAG])
     parser.add_argument("calibration_folder",
                         help="Directory where calibration files for the stereo "
                         "pair are stored.")
@@ -176,8 +178,6 @@ def main():
     parser.add_argument("--bm_settings",
                         help="File to save last block matcher settings to.",
                         default="")
-    parser.add_argument("--use_sgbm", help="Use StereoSGBM rather than StereoBM "
-                        "block matcher.", action="store_true")
     args = parser.parse_args()
 
     calibration = StereoCalibration(input_folder=args.calibration_folder)
@@ -187,6 +187,7 @@ def main():
     else:
         block_matcher = StereoBM()
     image_pair = [cv2.imread(image) for image in input_files[:2]]
+    input_files = input_files[2:]
     rectified_pair = calibration.rectify(image_pair)
     tuner = BMTuner(block_matcher, calibration, rectified_pair)
 
@@ -197,7 +198,7 @@ def main():
         input_files = input_files[2:]
 
     for param in block_matcher.parameter_maxima:
-        print(tuner.report_settings(param))
+        print("{}\n".format(tuner.report_settings(param)))
 
     if args.bm_settings:
         block_matcher.save_settings(args.bm_settings)

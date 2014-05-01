@@ -163,7 +163,7 @@ class StereoBM(BlockMatcher):
         else:
             gray = pair
         return self.block_matcher.compute(gray[0], gray[1],
-                                          disptype=cv2.CV_32F) / 32
+                                          disptype=cv2.CV_32F)
 
 class StereoSGBM(BlockMatcher):
     """A semi-global block matcher."""
