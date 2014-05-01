@@ -63,12 +63,12 @@ class BlockMatcher(object):
         with open(settings) as settings_file:
             settings_dict = simplejson.load(settings_file)
         for key, value in settings_dict.items():
-            self.__dict__[key] = value
+            self.__setattr__(key, value)
     def save_settings(self, settings_file):
         """Save block matcher settings to a file object"""
         settings = {}
         for parameter in self.parameter_maxima:
-            settings[parameter] = self.__dict__[parameter]
+            settings[parameter] = self.__getattribute__(parameter)
         with open(settings_file, "w") as settings_file:
             simplejson.dump(settings, settings_file)
     def replace_bm(self):
