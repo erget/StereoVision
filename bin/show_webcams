@@ -1,5 +1,20 @@
-#!/bin/env python
-"""A base class for working with stereo cameras."""
+#!/bin/python
+# Copyright (C) 2014 Daniel Lee <lee.daniel.1986@gmail.com>
+#
+# This file is part of StereoVision.
+#
+# StereoVision is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# StereoVision is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with StereoVision.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
 import os
@@ -7,54 +22,8 @@ import time
 
 import cv2
 
-class StereoPair(object):
-    """
-    A stereo pair of cameras.
+from stereovision.stereo_cameras import StereoPair
 
-    Should be initialized with a context manager to ensure that the cameras are
-    freed properly after use.
-    """
-
-    def __init__(self, devices):
-        """
-        Initialize cameras.
-
-        ``devices`` is an iterable containing the device numbers.
-        """
-        #: Video captures associated with the ``StereoPair``
-        self.captures = [cv2.VideoCapture(device) for device in devices]
-        #: Window names for showing captured frame from each camera
-        self.windows = ["{} camera".format(side) for side in ("Left", "Right")]
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        for capture in self.captures:
-            capture.release()
-        for window in self.windows:
-            cv2.destroyWindow(window)
-
-    def get_frames(self):
-        """Get current frames from cameras."""
-        return [capture.read()[1] for capture in self.captures]
-
-    def show_frames(self, wait=0):
-        """
-        Show current frames from cameras.
-
-        ``wait`` is the wait interval before the window closes.
-        """
-        for window, frame in zip(self.windows, self.get_frames()):
-            cv2.imshow(window, frame)
-        cv2.waitKey(wait)
-
-    def show_videos(self):
-        """Show video from cameras."""
-        while True:
-            self.show_frames(1)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
 
 def main():
     """
@@ -91,6 +60,7 @@ def main():
                     output_path = os.path.join(args.output_folder, filename)
                     cv2.imwrite(output_path, image)
                 i += 1
+
 
 if __name__ == "__main__":
     main()

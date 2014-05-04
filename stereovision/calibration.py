@@ -1,58 +1,92 @@
-#!/bin/env python
-"""
-Module for calibrating stereo cameras from a images with chessboards.
+# Copyright (C) 2014 Daniel Lee <lee.daniel.1986@gmail.com>
+#
+# This file is part of StereoVision.
+#
+# StereoVision is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# StereoVision is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with StereoVision.  If not, see <http://www.gnu.org/licenses/>.
 
-See stereo_match.tune_calib_pair in the OpenCV examples for some additional tips on
-converting the generated 3D coordinates into a point cloud. I borrowed some
-numpy magic from there.
+"""
+Classes for calibrating homemade stereo cameras.
+
+Classes:
+
+    * ``StereoCalibration`` - Calibration for stereo camera
+    * ``StereoCalibrator`` - Class to calibrate stereo camera with
+
+.. image:: classes_calibration.svg
 """
 
-import argparse
 import os
 
 import cv2
-import progressbar
 
 import numpy as np
-
-
-class ChessboardNotFoundError(Exception):
-    """No chessboard could be found in searched image."""
-
-
-def show_image(image, window_name, wait=0):
-    """Show an image and exit when a key is pressed or specified wait period."""
-    cv2.imshow(window_name, image)
-    if cv2.waitKey(wait):
-        cv2.destroyWindow(window_name)
-
-
-def find_files(folder):
-    """Discover stereo photos and return them as a pairwise sorted list."""
-    files = [i for i in os.listdir(folder) if i.startswith("left")]
-    files.sort()
-    for i in range(len(files)):
-        insert_string = "right{}".format(files[i * 2][4:])
-        files.insert(i * 2 + 1, insert_string)
-    files = [os.path.join(folder, filename) for filename in files]
-    return files
+from stereovision.exceptions import ChessboardNotFoundError
 
 
 class StereoCalibration(object):
-    """
-    Camera calibration.
 
-    A ``StereoCalibration`` can be used to store the calibration for a stereo
-    pair from a collection of pictures. With this calibration, it can also
-    rectify pictures taken from its stereo pair.
     """
+    A stereo camera calibration.
+
+    The ``StereoCalibration`` stores the calibration for a stereo pair. It can
+    also rectify pictures taken from its stereo pair.
+    """
+
+    def __str__(self):
+        output = ""
+        for key, item in self.__dict__.items():
+            output += key + ":\n"
+            output += str(item) + "\n"
+        return output
+
+    def _copy_calibration(self, calibration):
+        """Copy another ``StereoCalibration`` object's values."""
+        for key, item in calibration.__dict__.items():
+            self.__dict__[key] = item
+
+    def _interact_with_folder(self, output_folder, action):
+        """
+        Export/import matrices as *.npy files to/from an output folder.
+
+        ``action`` is a string. It determines whether the method reads or writes
+        to disk. It must have one of the following values: ('r', 'w').
+        """
+        if not action in ('r', 'w'):
+            raise ValueError("action must be either 'r' or 'w'.")
+        for key, item in self.__dict__.items():
+            if isinstance(item, dict):
+                for side in ("left", "right"):
+                    filename = os.path.join(output_folder,
+                                            "{}_{}.npy".format(key, side))
+                    if action == 'w':
+                        np.save(filename, self.__dict__[key][side])
+                    else:
+                        self.__dict__[key][side] = np.load(filename)
+            else:
+                filename = os.path.join(output_folder, "{}.npy".format(key))
+                if action == 'w':
+                    np.save(filename, self.__dict__[key])
+                else:
+                    self.__dict__[key] = np.load(filename)
+
     def __init__(self, calibration=None, input_folder=None):
         """
         Initialize camera calibration.
 
         If another calibration object is provided, copy its values. If an input
-        folder is provided, load *.npy files from that folder. An input folder
-        overwrites a calibration object.
+        folder is provided, load ``*.npy`` files from that folder. An input
+        folder overwrites a calibration object.
         """
         #: Camera matrices (M)
         self.cam_mats = {"left": None, "right": None}
@@ -79,51 +113,20 @@ class StereoCalibration(object):
         #: Rectification maps for remapping
         self.rectification_map = {"left": None, "right": None}
         if calibration:
-            self.copy_calibration(calibration)
+            self._copy_calibration(calibration)
         elif input_folder:
             self.load(input_folder)
-    def __str__(self):
-        output = ""
-        for key, item in self.__dict__.items():
-            output += key + ":\n"
-            output += str(item) + "\n"
-        return output
-    def copy_calibration(self, calibration):
-        """Copy another ``StereoCalibration`` object's values."""
-        for key, item in calibration.__dict__.items():
-            self.__dict__[key] = item
-    def _interact_with_folder(self, output_folder, action):
-        """
-        Export/import matrices as *.npy files to/from an output folder.
 
-        ``action`` is a string. It determines whether the method reads or writes
-        to disk. It must have one of the following values: ('r', 'w').
-        """
-        if not action in ('r', 'w'):
-            raise ValueError("action must be either 'r' or 'w'.")
-        for key, item in self.__dict__.items():
-            if isinstance(item, dict):
-                for side in ("left", "right"):
-                    filename = os.path.join(output_folder,
-                                            "{}_{}.npy".format(key, side))
-                    if action == 'w':
-                        np.save(filename, self.__dict__[key][side])
-                    else:
-                        self.__dict__[key][side] = np.load(filename)
-            else:
-                filename = os.path.join(output_folder, "{}.npy".format(key))
-                if action == 'w':
-                    np.save(filename, self.__dict__[key])
-                else:
-                    self.__dict__[key] = np.load(filename)
+    def load(self, input_folder):
+        """Load values from ``*.npy`` files in ``input_folder``."""
+        self._interact_with_folder(input_folder, 'r')
+
     def export(self, output_folder):
-        """Export matrices as *.npy files to an output folder."""
+        """Export matrices as ``*.npy`` files to an output folder."""
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
         self._interact_with_folder(output_folder, 'w')
-    def load(self, input_folder):
-        """Load values from *.npy files in ``input_folder``."""
-        self._interact_with_folder(input_folder, 'r')
+
     def rectify(self, frames):
         """
         Rectify frames passed as (left, right) pair of OpenCV Mats.
@@ -140,7 +143,31 @@ class StereoCalibration(object):
 
 
 class StereoCalibrator(object):
-    """A class that calibrates stereo cameras."""
+
+    """A class that calibrates stereo cameras by finding chessboard corners."""
+
+    def _get_corners(self, image):
+        """Find subpixel chessboard corners in image."""
+        temp = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        ret, corners = cv2.findChessboardCorners(temp,
+                                                 (self.rows, self.columns))
+        if not ret:
+            raise ChessboardNotFoundError("No chessboard could be found.")
+        cv2.cornerSubPix(temp, corners, (11, 11), (-1, -1),
+                         (cv2.TERM_CRITERIA_MAX_ITER + cv2.TERM_CRITERIA_EPS,
+                          30, 0.01))
+        return corners
+
+    def _show_corners(self, image, corners):
+        """Show chessboard corners found in image."""
+        temp = image
+        cv2.drawChessboardCorners(temp, (self.rows, self.columns), corners,
+                                  True)
+        window_name = "Chessboard"
+        cv2.imshow(window_name, temp)
+        if cv2.waitKey(0):
+            cv2.destroyWindow(window_name)
+
     def __init__(self, rows, columns, square_size, image_size):
         """
         Store variables relevant to the camera calibration.
@@ -170,23 +197,7 @@ class StereoCalibrator(object):
         #: Array of found corner coordinates from calibration images for left
         #: and right camera, respectively
         self.image_points = {"left": [], "right": []}
-    def get_corners(self, image):
-        """Find subpixel chessboard corners in image."""
-        temp = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        ret, corners = cv2.findChessboardCorners(temp,
-                                                 (self.rows, self.columns))
-        if not ret:
-            raise ChessboardNotFoundError("No chessboard could be found.")
-        cv2.cornerSubPix(temp, corners, (11, 11), (-1, -1),
-                         (cv2.TERM_CRITERIA_MAX_ITER + cv2.TERM_CRITERIA_EPS,
-                          30, 0.01))
-        return corners
-    def show_corners(self, image, corners):
-        """Show chessboard corners found in image."""
-        temp = image
-        cv2.drawChessboardCorners(temp, (self.rows, self.columns), corners,
-                                  True)
-        show_image(temp, "Chessboard")
+
     def add_corners(self, image_pair, show_results=False):
         """
         Record chessboard corners found in an image pair.
@@ -197,12 +208,13 @@ class StereoCalibrator(object):
         side = "left"
         self.object_points.append(self.corner_coordinates)
         for image in image_pair:
-            corners = self.get_corners(image)
+            corners = self._get_corners(image)
             if show_results:
-                self.show_corners(image, corners)
+                self._show_corners(image, corners)
             self.image_points[side].append(corners.reshape(-1, 2))
             side = "right"
             self.image_count += 1
+
     def calibrate_cameras(self):
         """Calibrate cameras based on found chessboard corners."""
         criteria = (cv2.TERM_CRITERIA_MAX_ITER + cv2.TERM_CRITERIA_EPS,
@@ -248,6 +260,7 @@ class StereoCalibrator(object):
                                               [0, 0, 0, -focal_length],
                                               [0, 0, 1, 0]])
         return calib
+
     def check_calibration(self, calibration):
         """
         Check calibration quality by computing average reprojection error.
@@ -282,80 +295,3 @@ class StereoCalibrator(object):
             other_side, this_side = sides
         total_points = self.image_count * len(self.object_points)
         return total_error / total_points
-
-def calibrate_folder(args):
-    """
-    Calibrate camera based on chessboard images, write results to output folder.
-
-    All images are read from disk. Chessboard points are found and used to
-    calibrate the stereo pair. Finally, the calibration is written to the folder
-    specified in ``args``.
-
-    ``args`` needs to contain the following fields:
-        input_files: List of paths to input files
-        rows: Number of rows in chessboard
-        columns: Number of columns in chessboard
-        square_size: Size of chessboard squares in cm
-        output_folder: Folder to write calibration to
-    """
-    height, width = cv2.imread(args.input_files[0]).shape[:2]
-    calibrator = StereoCalibrator(args.rows, args.columns, args.square_size,
-                                  (width, height))
-    progress = progressbar.ProgressBar(maxval=len(args.input_files),
-                                       widgets=[progressbar.Bar("=", "[", "]"),
-                                                " ", progressbar.Percentage()])
-    print("Reading input files...")
-    while args.input_files:
-        left, right = args.input_files[:2]
-        img_left, im_right = cv2.imread(left), cv2.imread(right)
-        calibrator.add_corners((img_left, im_right),
-                               show_results=args.show_chessboards)
-        args.input_files = args.input_files[2:]
-        progress.update(progress.maxval - len(args.input_files))
-
-    progress.finish()
-    print("Calibrating cameras. This can take a while.")
-    calibration = calibrator.calibrate_cameras()
-    avg_error = calibrator.check_calibration(calibration)
-    print("The average error between chessboard points and their epipolar "
-          "lines is \n"
-          "{} pixels. This should be as small as possible.".format(avg_error))
-    calibration.export(args.output_folder)
-
-CHESSBOARD_ARGUMENTS = argparse.ArgumentParser(add_help=False)
-CHESSBOARD_ARGUMENTS.add_argument("--rows", type=int,
-                                  help="Number of inside corners in the "
-                                  "chessboard's rows.", default=9)
-CHESSBOARD_ARGUMENTS.add_argument("--columns", type=int,
-                                  help="Number of inside corners in the "
-                                  "chessboard's columns.", default=6)
-CHESSBOARD_ARGUMENTS.add_argument("--square-size", help="Size of chessboard "
-                                  "squares in cm.", type=float, default=1.8)
-
-def main():
-    """
-    Read all images in input folder and produce camera calibration files.
-
-    First, parse arguments provided by user. Then scan input folder for input
-    files. Harvest chessboard points from each image in folder, then use them
-    to calibrate the stereo pair. Report average error to user and export
-    calibration files to output folder.
-    """
-    parser = argparse.ArgumentParser(description="Read images taken with "
-                                     "stereo pair and use them to compute "
-                                     "camera calibration.",
-                             parents=[CHESSBOARD_ARGUMENTS])
-    parser.add_argument("input_folder", help="Input folder assumed to contain "
-                        "only stereo images taken with the stereo camera pair "
-                        "that should be calibrated.")
-    parser.add_argument("output_folder", help="Folder to write calibration "
-                        "files to.", default="/tmp/")
-    parser.add_argument("--show-chessboards", help="Display detected "
-                        "chessboard corners.", action="store_true")
-    args = parser.parse_args()
-
-    args.input_files = find_files(args.input_folder)
-    calibrate_folder(args)
-
-if __name__ == "__main__":
-    main()
