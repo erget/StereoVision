@@ -19,6 +19,8 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
+MODULES=blockmatchers calibration exceptions point_cloud stereo_cameras ui_utils
+
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
 
 help:
@@ -179,13 +181,11 @@ pseudoxml: autographics
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
-autographics:
+autographics: $(MODULES)
 	cd .. ; \
 	pyreverse stereovision -o svg -p StereoVision
 	rm ../classes_StereoVision.svg
 	mv ../packages_StereoVision.svg .
-	for m in blockmatchers ui_utils point_cloud calibration stereo_cameras \
-		exceptions; \
-		do \
-		pyreverse ../stereovision/$$m.py -o svg -p $$m ; \
-	done
+
+$(MODULES):
+	pyreverse ../stereovision/$@.py -o svg -p $@ ; \
