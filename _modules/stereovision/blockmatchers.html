@@ -1,0 +1,499 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>stereovision.blockmatchers &mdash; StereoVision 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="StereoVision 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">StereoVision 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for stereovision.blockmatchers</h1><div class="highlight"><pre>
+<span class="c"># Copyright (C) 2014 Daniel Lee &lt;lee.daniel.1986@gmail.com&gt;</span>
+<span class="c">#</span>
+<span class="c"># This file is part of StereoVision.</span>
+<span class="c">#</span>
+<span class="c"># StereoVision is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># StereoVision is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License</span>
+<span class="c"># along with StereoVision.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Wrapper classes for block matching algorithms.</span>
+
+<span class="sd">Classes:</span>
+
+<span class="sd">    * ``BlockMatcher`` - Abstract class that implements interface for subclasses</span>
+
+<span class="sd">        * ``StereoBM`` - StereoBM block matching algorithm</span>
+<span class="sd">        * ``StereoSGBM`` - StereoSGBM block matching algorithm</span>
+
+<span class="sd">.. image:: classes_blockmatchers.svg</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">simplejson</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">stereovision.exceptions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">InvalidSearchRangeError</span><span class="p">,</span>
+                                    <span class="n">InvalidWindowSizeError</span><span class="p">,</span>
+                                    <span class="n">InvalidBMPresetError</span><span class="p">,</span>
+                                    <span class="n">InvalidNumDisparitiesError</span><span class="p">,</span>
+                                    <span class="n">InvalidSADWindowSizeError</span><span class="p">,</span>
+                                    <span class="n">InvalidUniquenessRatioError</span><span class="p">,</span>
+                                    <span class="n">InvalidSpeckleWindowSizeError</span><span class="p">,</span>
+                                    <span class="n">InvalidSpeckleRangeError</span><span class="p">,</span>
+                                    <span class="n">InvalidFirstDisparityChangePenaltyError</span><span class="p">,</span>
+                                    <span class="n">InvalidSecondDisparityChangePenaltyError</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BlockMatcher"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.BlockMatcher">[docs]</a><span class="k">class</span> <span class="nc">BlockMatcher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Block matching algorithms.</span>
+
+<span class="sd">    This abstract class exposes the interface for subclasses that wrap OpenCV&#39;s</span>
+<span class="sd">    block matching algorithms. Doing so makes it possible to use them in the</span>
+<span class="sd">    strategy pattern. In this library, that happens in ``CalibratedPair``, which</span>
+<span class="sd">    uses a unified interface to interact with any kind of block matcher, and</span>
+<span class="sd">    with ``BMTuners``, which can discover the ``BlockMatcher&#39;s`` parameters and</span>
+<span class="sd">    allow the user to adjust them online.</span>
+
+<span class="sd">    Each ``BlockMatcher`` protects its block matcher&#39;s parameters by using</span>
+<span class="sd">    getters and setters. It exposes its settable parameter and their maximum</span>
+<span class="sd">    values, if they exist, in the dictionary ``parameter_maxima``.</span>
+
+<span class="sd">    ``load_settings``, ``save_settings`` and ``get_3d`` are implemented on</span>
+<span class="sd">    ``BlockMatcher`` itself, as these are independent of the block matching</span>
+<span class="sd">    algorithm. Subclasses are expected to implement ``_replace_bm`` and</span>
+<span class="sd">    ``get_disparity``, as well as the getters and setters. They are also</span>
+<span class="sd">    expected to call ``BlockMatcher``&#39;s ``__init__`` after setting their own</span>
+<span class="sd">    private variables.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c">#: Dictionary of parameter names associated with their maximum values</span>
+    <span class="n">parameter_maxima</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set block matcher parameters and load from file if necessary.&quot;&quot;&quot;</span>
+        <span class="c">#: Block matcher object used for computing point clouds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_block_matcher</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_settings</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BlockMatcher.load_settings"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.BlockMatcher.load_settings">[docs]</a>    <span class="k">def</span> <span class="nf">load_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load settings from file&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span> <span class="k">as</span> <span class="n">settings_file</span><span class="p">:</span>
+            <span class="n">settings_dict</span> <span class="o">=</span> <span class="n">simplejson</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">settings_file</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">settings_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BlockMatcher.save_settings"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.BlockMatcher.save_settings">[docs]</a>    <span class="k">def</span> <span class="nf">save_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings_file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save block matcher settings to a file object&quot;&quot;&quot;</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_maxima</span><span class="p">:</span>
+            <span class="n">settings</span><span class="p">[</span><span class="n">parameter</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getattribute__</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">settings_file</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">settings_file</span><span class="p">:</span>
+            <span class="n">simplejson</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">settings_file</span><span class="p">)</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BlockMatcher.get_3d"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.BlockMatcher.get_3d">[docs]</a>    <span class="k">def</span> <span class="nf">get_3d</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">disparity</span><span class="p">,</span> <span class="n">disparity_to_depth_map</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute point cloud.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">reprojectImageTo3D</span><span class="p">(</span><span class="n">disparity</span><span class="p">,</span> <span class="n">disparity_to_depth_map</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_replace_bm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Replace block matcher with new parameters&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+<div class="viewcode-block" id="BlockMatcher.get_disparity"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.BlockMatcher.get_disparity">[docs]</a>    <span class="k">def</span> <span class="nf">get_disparity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_pair</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute disparity map from image pair.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+</div></div>
+<div class="viewcode-block" id="StereoBM"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoBM">[docs]</a><span class="k">class</span> <span class="nc">StereoBM</span><span class="p">(</span><span class="n">BlockMatcher</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;A stereo block matching ``BlockMatcher``.&quot;&quot;&quot;</span>
+
+    <span class="n">parameter_maxima</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;search_range&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                       <span class="s">&quot;window_size&quot;</span><span class="p">:</span> <span class="mi">255</span><span class="p">,</span>
+                       <span class="s">&quot;stereo_bm_preset&quot;</span><span class="p">:</span> <span class="n">cv2</span><span class="o">.</span><span class="n">STEREO_BM_NARROW_PRESET</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">search_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_search_range`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_search_range</span>
+
+    <span class="nd">@search_range.setter</span>
+<div class="viewcode-block" id="StereoBM.search_range"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoBM.search_range">[docs]</a>    <span class="k">def</span> <span class="nf">search_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_search_range`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">value</span> <span class="o">%</span> <span class="mi">16</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_search_range</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidSearchRangeError</span><span class="p">(</span><span class="s">&quot;Search range must be a multiple of &quot;</span>
+                                          <span class="s">&quot;16.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">window_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_window_size`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_window_size</span>
+
+    <span class="nd">@window_size.setter</span>
+<div class="viewcode-block" id="StereoBM.window_size"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoBM.window_size">[docs]</a>    <span class="k">def</span> <span class="nf">window_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_window_size`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">value</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="ow">and</span>
+            <span class="n">value</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_maxima</span><span class="p">[</span><span class="s">&quot;window_size&quot;</span><span class="p">]</span> <span class="ow">and</span>
+            <span class="n">value</span> <span class="o">%</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_window_size</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidWindowSizeError</span><span class="p">(</span><span class="s">&quot;Window size must be an odd number &quot;</span>
+                                      <span class="s">&quot;between 0 and {}.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">parameter_maxima</span><span class="p">[</span><span class="s">&quot;window_size&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stereo_bm_preset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_bm_preset`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bm_preset</span>
+
+    <span class="nd">@stereo_bm_preset.setter</span>
+<div class="viewcode-block" id="StereoBM.stereo_bm_preset"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoBM.stereo_bm_preset">[docs]</a>    <span class="k">def</span> <span class="nf">stereo_bm_preset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_stereo_bm_preset`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">STEREO_BM_BASIC_PRESET</span><span class="p">,</span>
+                     <span class="n">cv2</span><span class="o">.</span><span class="n">STEREO_BM_FISH_EYE_PRESET</span><span class="p">,</span>
+                     <span class="n">cv2</span><span class="o">.</span><span class="n">STEREO_BM_NARROW_PRESET</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bm_preset</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidBMPresetError</span><span class="p">(</span><span class="s">&quot;Stereo BM preset must be defined as &quot;</span>
+                                       <span class="s">&quot;cv2.STEREO_BM_*_PRESET.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">_replace_bm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Replace ``_block_matcher`` with current values.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_block_matcher</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">StereoBM</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_bm_preset</span><span class="p">,</span>
+                                          <span class="n">ndisparities</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_search_range</span><span class="p">,</span>
+                                          <span class="n">SADWindowSize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_window_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stereo_bm_preset</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">STEREO_BM_BASIC_PRESET</span><span class="p">,</span>
+                 <span class="n">search_range</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+                 <span class="n">window_size</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
+                 <span class="n">settings</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bm_preset</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">STEREO_BM_BASIC_PRESET</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_search_range</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_window_size</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="c">#: OpenCV camera type for ``_block_matcher``</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stereo_bm_preset</span> <span class="o">=</span> <span class="n">stereo_bm_preset</span>
+        <span class="c">#: Number of disparities for ``_block_matcher``</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">search_range</span> <span class="o">=</span> <span class="n">search_range</span>
+        <span class="c">#: Search window size for ``_block_matcher``</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span> <span class="o">=</span> <span class="n">window_size</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">StereoBM</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StereoBM.get_disparity"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoBM.get_disparity">[docs]</a>    <span class="k">def</span> <span class="nf">get_disparity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pair</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute disparity from image pair (left, right).</span>
+
+<span class="sd">        First, convert images to grayscale if needed. Then pass to the</span>
+<span class="sd">        ``_block_matcher`` for stereo matching.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">gray</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="n">pair</span><span class="p">:</span>
+                <span class="n">gray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">side</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2GRAY</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gray</span> <span class="o">=</span> <span class="n">pair</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_block_matcher</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">gray</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">gray</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                          <span class="n">disptype</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">CV_32F</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="StereoSGBM"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM">[docs]</a><span class="k">class</span> <span class="nc">StereoSGBM</span><span class="p">(</span><span class="n">BlockMatcher</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;A semi-global block matcher.&quot;&quot;&quot;</span>
+
+    <span class="n">parameter_maxima</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;minDisparity&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                       <span class="s">&quot;numDisparities&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                       <span class="s">&quot;SADWindowSize&quot;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+                       <span class="s">&quot;P1&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                       <span class="s">&quot;P2&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                       <span class="s">&quot;disp12MaxDiff&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                       <span class="s">&quot;uniquenessRatio&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+                       <span class="s">&quot;speckleWindowSize&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+                       <span class="s">&quot;speckleRange&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                       <span class="s">&quot;fullDP&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">minDisparity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_min_disparity`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_disparity</span>
+
+    <span class="nd">@minDisparity.setter</span>
+<div class="viewcode-block" id="StereoSGBM.minDisparity"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM.minDisparity">[docs]</a>    <span class="k">def</span> <span class="nf">minDisparity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_min_disparity`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_disparity</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">numDisparities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_num_disp`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_disp</span>
+
+    <span class="nd">@numDisparities.setter</span>
+<div class="viewcode-block" id="StereoSGBM.numDisparities"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM.numDisparities">[docs]</a>    <span class="k">def</span> <span class="nf">numDisparities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_num_disp`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">%</span> <span class="mi">16</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_num_disp</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidNumDisparitiesError</span><span class="p">(</span><span class="s">&quot;numDisparities must be a &quot;</span>
+                                             <span class="s">&quot;positive integer evenly &quot;</span>
+                                             <span class="s">&quot;divisible by 16.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">SADWindowSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_sad_window_size`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sad_window_size</span>
+
+    <span class="nd">@SADWindowSize.setter</span>
+<div class="viewcode-block" id="StereoSGBM.SADWindowSize"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM.SADWindowSize">[docs]</a>    <span class="k">def</span> <span class="nf">SADWindowSize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_sad_window_size`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="mi">11</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sad_window_size</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidSADWindowSizeError</span><span class="p">(</span><span class="s">&quot;SADWindowSize must be odd and &quot;</span>
+                                            <span class="s">&quot;between 1 and 11.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">uniquenessRatio</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_uniqueness`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uniqueness</span>
+
+    <span class="nd">@uniquenessRatio.setter</span>
+<div class="viewcode-block" id="StereoSGBM.uniquenessRatio"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM.uniquenessRatio">[docs]</a>    <span class="k">def</span> <span class="nf">uniquenessRatio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_uniqueness`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;=</span> <span class="mi">5</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="mi">15</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_uniqueness</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidUniquenessRatioError</span><span class="p">(</span><span class="s">&quot;Uniqueness ratio must be &quot;</span>
+                                              <span class="s">&quot;between 5 and 15.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">speckleWindowSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_speckle_window_size`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_speckle_window_size</span>
+
+    <span class="nd">@speckleWindowSize.setter</span>
+<div class="viewcode-block" id="StereoSGBM.speckleWindowSize"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM.speckleWindowSize">[docs]</a>    <span class="k">def</span> <span class="nf">speckleWindowSize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_speckle_window_size`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_speckle_window_size</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidSpeckleWindowSizeError</span><span class="p">(</span><span class="s">&quot;Speckle window size must be 0 &quot;</span>
+                                                <span class="s">&quot;for disabled checks or &quot;</span>
+                                                <span class="s">&quot;between 50 and 200.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">speckleRange</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_speckle_range`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_speckle_range</span>
+
+    <span class="nd">@speckleRange.setter</span>
+<div class="viewcode-block" id="StereoSGBM.speckleRange"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM.speckleRange">[docs]</a>    <span class="k">def</span> <span class="nf">speckleRange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_speckle_range`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_speckle_range</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidSpeckleRangeError</span><span class="p">(</span><span class="s">&quot;Speckle range cannot be negative.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">disp12MaxDiff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_max_disparity`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_disparity</span>
+
+    <span class="nd">@disp12MaxDiff.setter</span>
+<div class="viewcode-block" id="StereoSGBM.disp12MaxDiff"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM.disp12MaxDiff">[docs]</a>    <span class="k">def</span> <span class="nf">disp12MaxDiff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_max_disparity`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_disparity</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">P1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_P1`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_P1</span>
+
+    <span class="nd">@P1.setter</span>
+<div class="viewcode-block" id="StereoSGBM.P1"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM.P1">[docs]</a>    <span class="k">def</span> <span class="nf">P1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_P1`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">P2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_P1</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidFirstDisparityChangePenaltyError</span><span class="p">(</span><span class="s">&quot;P1 must be less &quot;</span>
+                                                          <span class="s">&quot;than P2.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">P2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_P2`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_P2</span>
+
+    <span class="nd">@P2.setter</span>
+<div class="viewcode-block" id="StereoSGBM.P2"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM.P2">[docs]</a>    <span class="k">def</span> <span class="nf">P2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_P2`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">P1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_P2</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidSecondDisparityChangePenaltyError</span><span class="p">(</span><span class="s">&quot;P2 must be greater &quot;</span>
+                                                          <span class="s">&quot;than P1.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fullDP</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return private ``_full_dp`` value.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_full_dp</span>
+
+    <span class="nd">@fullDP.setter</span>
+<div class="viewcode-block" id="StereoSGBM.fullDP"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM.fullDP">[docs]</a>    <span class="k">def</span> <span class="nf">fullDP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set private ``_full_dp`` and reset ``_block_matcher``.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_dp</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_bm</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">_replace_bm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Replace ``_block_matcher`` with current values.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_block_matcher</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">StereoSGBM</span><span class="p">(</span><span class="n">minDisparity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_disparity</span><span class="p">,</span>
+                        <span class="n">numDisparities</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_disp</span><span class="p">,</span>
+                        <span class="n">SADWindowSize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sad_window_size</span><span class="p">,</span>
+                        <span class="n">uniquenessRatio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_uniqueness</span><span class="p">,</span>
+                        <span class="n">speckleWindowSize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_speckle_window_size</span><span class="p">,</span>
+                        <span class="n">speckleRange</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_speckle_range</span><span class="p">,</span>
+                        <span class="n">disp12MaxDiff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_disparity</span><span class="p">,</span>
+                        <span class="n">P1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_P1</span><span class="p">,</span>
+                        <span class="n">P2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_P2</span><span class="p">,</span>
+                        <span class="n">fullDP</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_dp</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_disparity</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">num_disp</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">sad_window_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                 <span class="n">uniqueness</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">speckle_window_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">speckle_range</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+                 <span class="n">p1</span><span class="o">=</span><span class="mi">216</span><span class="p">,</span> <span class="n">p2</span><span class="o">=</span><span class="mi">864</span><span class="p">,</span> <span class="n">max_disparity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">full_dp</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">settings</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Instantiate private variables and call superclass initializer.&quot;&quot;&quot;</span>
+        <span class="c">#: Minimum number of disparities. Normally 0, can be adjusted as</span>
+        <span class="c">#: needed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_disparity</span> <span class="o">=</span> <span class="n">min_disparity</span>
+        <span class="c">#: Number of disparities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_disp</span> <span class="o">=</span> <span class="n">num_disp</span>
+        <span class="c">#: Matched block size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sad_window_size</span> <span class="o">=</span> <span class="n">sad_window_size</span>
+        <span class="c">#: Uniqueness ratio for found matches</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_uniqueness</span> <span class="o">=</span> <span class="n">uniqueness</span>
+        <span class="c">#: Maximum size of smooth disparity regions to invalid by noise</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_speckle_window_size</span> <span class="o">=</span> <span class="n">speckle_window_size</span>
+        <span class="c">#: Maximum disparity range within connected component</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_speckle_range</span> <span class="o">=</span> <span class="n">speckle_range</span>
+        <span class="c">#: Penalty on disparity change by +-1 between neighbor pixels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_P1</span> <span class="o">=</span> <span class="n">p1</span>
+        <span class="c">#: Penalty on disparity change by multiple neighbor pixels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_P2</span> <span class="o">=</span> <span class="n">p2</span>
+        <span class="c">#: Maximum left-right disparity. 0 to disable check</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_disparity</span> <span class="o">=</span> <span class="n">max_disparity</span>
+        <span class="c">#: Boolean to use full-scale two-pass dynamic algorithm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_dp</span> <span class="o">=</span> <span class="n">full_dp</span>
+        <span class="c">#: StereoSGBM whose state is controlled</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_block_matcher</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">StereoSGBM</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">StereoSGBM</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StereoSGBM.get_disparity"><a class="viewcode-back" href="../../development.html#stereovision.blockmatchers.StereoSGBM.get_disparity">[docs]</a>    <span class="k">def</span> <span class="nf">get_disparity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pair</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute disparity from image pair (left, right).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_block_matcher</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                          <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">16.0</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">StereoVision 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Lee.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

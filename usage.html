@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Using StereoVision &mdash; StereoVision 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="StereoVision 1.0.0 documentation" href="index.html" />
+    <link rel="next" title="StereoVision source documentation" href="development.html" />
+    <link rel="prev" title="StereoVision: Library and utilities for 3d reconstruction from stereo cameras" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="development.html" title="StereoVision source documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="StereoVision: Library and utilities for 3d reconstruction from stereo cameras"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">StereoVision 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="using-stereovision">
+<h1>Using StereoVision<a class="headerlink" href="#using-stereovision" title="Permalink to this headline">¶</a></h1>
+<p><tt class="docutils literal"><span class="pre">StereoVision</span></tt> offers a number of command line utilities that you can use in
+order to produce 3d point clouds from stereo images. They are listed in the
+following table, roughly in the order that you would use them if you were to
+set up a project of your own from scratch. Usage information can be obtained on
+the command line by calling them with the <tt class="docutils literal"><span class="pre">-h</span></tt> and <tt class="docutils literal"><span class="pre">--help</span></tt> flags.</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="34%" />
+<col width="66%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Script name</th>
+<th class="head">Purpose</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">show_webcams</span></tt></td>
+<td>Show output from stereo camera pair, optionally
+capture images</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">capture_chessboards</span></tt></td>
+<td>Capture images of chessboards simultaneously
+visible from both cameras in stereo pair for
+the purpose of calibrating the camera pair.
+Optionally calibrate camera pair online.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">calibrate_cameras</span></tt></td>
+<td>Calibrate stereo pair using previously captured
+chessboard images</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">tune_blockmatcher</span></tt></td>
+<td>Manually tune block matching algorithm to
+produce good disparity maps with a given stereo
+pair</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">images_to_pointcloud</span></tt></td>
+<td>Convert image pairs captured with a calibrated
+stereo pair to a colored 3d point cloud</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>These scripts can also be used as examples for how to use the classes in
+<tt class="docutils literal"><span class="pre">StereoVision</span></tt>.</p>
+<blockquote>
+<div>If you&#8217;d like to use the library classes available in <tt class="docutils literal"><span class="pre">StereoVision</span></tt>, see
+the <a class="reference external" href="development.html">developer documentation</a>.</div></blockquote>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">StereoVision: Library and utilities for 3d reconstruction from stereo cameras</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="development.html"
+                        title="next chapter">StereoVision source documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/usage.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="development.html" title="StereoVision source documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="StereoVision: Library and utilities for 3d reconstruction from stereo cameras"
+             >previous</a> |</li>
+        <li><a href="index.html">StereoVision 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Lee.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

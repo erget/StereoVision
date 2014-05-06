@@ -1,0 +1,389 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>stereovision.calibration &mdash; StereoVision 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="StereoVision 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">StereoVision 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for stereovision.calibration</h1><div class="highlight"><pre>
+<span class="c"># Copyright (C) 2014 Daniel Lee &lt;lee.daniel.1986@gmail.com&gt;</span>
+<span class="c">#</span>
+<span class="c"># This file is part of StereoVision.</span>
+<span class="c">#</span>
+<span class="c"># StereoVision is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># StereoVision is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License</span>
+<span class="c"># along with StereoVision.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Classes for calibrating homemade stereo cameras.</span>
+
+<span class="sd">Classes:</span>
+
+<span class="sd">    * ``StereoCalibration`` - Calibration for stereo camera</span>
+<span class="sd">    * ``StereoCalibrator`` - Class to calibrate stereo camera with</span>
+
+<span class="sd">.. image:: classes_calibration.svg</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">cv2</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">stereovision.exceptions</span> <span class="kn">import</span> <span class="n">ChessboardNotFoundError</span>
+
+
+<div class="viewcode-block" id="StereoCalibration"><a class="viewcode-back" href="../../development.html#stereovision.calibration.StereoCalibration">[docs]</a><span class="k">class</span> <span class="nc">StereoCalibration</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A stereo camera calibration.</span>
+
+<span class="sd">    The ``StereoCalibration`` stores the calibration for a stereo pair. It can</span>
+<span class="sd">    also rectify pictures taken from its stereo pair.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="n">key</span> <span class="o">+</span> <span class="s">&quot;:</span><span class="se">\n</span><span class="s">&quot;</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+        <span class="k">return</span> <span class="n">output</span>
+
+    <span class="k">def</span> <span class="nf">_copy_calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calibration</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copy another ``StereoCalibration`` object&#39;s values.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">calibration</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+
+    <span class="k">def</span> <span class="nf">_interact_with_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Export/import matrices as *.npy files to/from an output folder.</span>
+
+<span class="sd">        ``action`` is a string. It determines whether the method reads or writes</span>
+<span class="sd">        to disk. It must have one of the following values: (&#39;r&#39;, &#39;w&#39;).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;action must be either &#39;r&#39; or &#39;w&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;left&quot;</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">):</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span>
+                                            <span class="s">&quot;{}_{}.npy&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">side</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s">&#39;w&#39;</span><span class="p">:</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">side</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">side</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="s">&quot;{}.npy&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s">&#39;w&#39;</span><span class="p">:</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calibration</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">input_folder</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize camera calibration.</span>
+
+<span class="sd">        If another calibration object is provided, copy its values. If an input</span>
+<span class="sd">        folder is provided, load ``*.npy`` files from that folder. An input</span>
+<span class="sd">        folder overwrites a calibration object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#: Camera matrices (M)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cam_mats</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;left&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+        <span class="c">#: Distortion coefficients (D)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist_coefs</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;left&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+        <span class="c">#: Rotation matrix (R)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rot_mat</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#: Translation vector (T)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trans_vec</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#: Essential matrix (E)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">e_mat</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#: Fundamental matrix (F)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_mat</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#: Rectification transforms (3x3 rectification matrix R1 / R2)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rect_trans</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;left&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+        <span class="c">#: Projection matrices (3x4 projection matrix P1 / P2)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proj_mats</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;left&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+        <span class="c">#: Disparity to depth mapping matrix (4x4 matrix, Q)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disp_to_depth_mat</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#: Bounding boxes of valid pixels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid_boxes</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;left&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+        <span class="c">#: Undistortion maps for remapping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undistortion_map</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;left&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+        <span class="c">#: Rectification maps for remapping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rectification_map</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;left&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">calibration</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_copy_calibration</span><span class="p">(</span><span class="n">calibration</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">input_folder</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">input_folder</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StereoCalibration.load"><a class="viewcode-back" href="../../development.html#stereovision.calibration.StereoCalibration.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_folder</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load values from ``*.npy`` files in ``input_folder``.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_interact_with_folder</span><span class="p">(</span><span class="n">input_folder</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="StereoCalibration.export"><a class="viewcode-back" href="../../development.html#stereovision.calibration.StereoCalibration.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Export matrices as ``*.npy`` files to an output folder.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_folder</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_folder</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_interact_with_folder</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="StereoCalibration.rectify"><a class="viewcode-back" href="../../development.html#stereovision.calibration.StereoCalibration.rectify">[docs]</a>    <span class="k">def</span> <span class="nf">rectify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frames</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rectify frames passed as (left, right) pair of OpenCV Mats.</span>
+
+<span class="sd">        Remapping is done with nearest neighbor for speed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_frames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">side</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="s">&quot;left&quot;</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">)):</span>
+            <span class="n">new_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">remap</span><span class="p">(</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">undistortion_map</span><span class="p">[</span><span class="n">side</span><span class="p">],</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">rectification_map</span><span class="p">[</span><span class="n">side</span><span class="p">],</span>
+                                        <span class="n">cv2</span><span class="o">.</span><span class="n">INTER_NEAREST</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">new_frames</span>
+
+</div></div>
+<div class="viewcode-block" id="StereoCalibrator"><a class="viewcode-back" href="../../development.html#stereovision.calibration.StereoCalibrator">[docs]</a><span class="k">class</span> <span class="nc">StereoCalibrator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;A class that calibrates stereo cameras by finding chessboard corners.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_get_corners</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find subpixel chessboard corners in image.&quot;&quot;&quot;</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2GRAY</span><span class="p">)</span>
+        <span class="n">ret</span><span class="p">,</span> <span class="n">corners</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">findChessboardCorners</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span>
+                                                 <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ret</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ChessboardNotFoundError</span><span class="p">(</span><span class="s">&quot;No chessboard could be found.&quot;</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">cornerSubPix</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">corners</span><span class="p">,</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                         <span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">TERM_CRITERIA_MAX_ITER</span> <span class="o">+</span> <span class="n">cv2</span><span class="o">.</span><span class="n">TERM_CRITERIA_EPS</span><span class="p">,</span>
+                          <span class="mi">30</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">corners</span>
+
+    <span class="k">def</span> <span class="nf">_show_corners</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">corners</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show chessboard corners found in image.&quot;&quot;&quot;</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">image</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">drawChessboardCorners</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="n">corners</span><span class="p">,</span>
+                                  <span class="bp">True</span><span class="p">)</span>
+        <span class="n">window_name</span> <span class="o">=</span> <span class="s">&quot;Chessboard&quot;</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">window_name</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cv2</span><span class="o">.</span><span class="n">waitKey</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">destroyWindow</span><span class="p">(</span><span class="n">window_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">square_size</span><span class="p">,</span> <span class="n">image_size</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Store variables relevant to the camera calibration.</span>
+
+<span class="sd">        ``corner_coordinates`` are generated by creating an array of 3D</span>
+<span class="sd">        coordinates that correspond to the actual positions of the chessboard</span>
+<span class="sd">        corners observed on a 2D plane in 3D space.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#: Number of calibration images</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c">#: Number of inside corners in the chessboard&#39;s rows</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="n">rows</span>
+        <span class="c">#: Number of inside corners in the chessboard&#39;s columns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">columns</span>
+        <span class="c">#: Size of chessboard squares in cm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">square_size</span> <span class="o">=</span> <span class="n">square_size</span>
+        <span class="c">#: Size of calibration images in pixels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="n">image_size</span>
+        <span class="n">pattern_size</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="n">corner_coordinates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">pattern_size</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">corner_coordinates</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">pattern_size</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">corner_coordinates</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">square_size</span>
+        <span class="c">#: Real world corner coordinates found in each image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corner_coordinates</span> <span class="o">=</span> <span class="n">corner_coordinates</span>
+        <span class="c">#: Array of real world corner coordinates to match the corners found</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_points</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#: Array of found corner coordinates from calibration images for left</span>
+        <span class="c">#: and right camera, respectively</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_points</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;left&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&quot;right&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<div class="viewcode-block" id="StereoCalibrator.add_corners"><a class="viewcode-back" href="../../development.html#stereovision.calibration.StereoCalibrator.add_corners">[docs]</a>    <span class="k">def</span> <span class="nf">add_corners</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_pair</span><span class="p">,</span> <span class="n">show_results</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Record chessboard corners found in an image pair.</span>
+
+<span class="sd">        The image pair should be an iterable composed of two CvMats ordered</span>
+<span class="sd">        (left, right).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">side</span> <span class="o">=</span> <span class="s">&quot;left&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corner_coordinates</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_pair</span><span class="p">:</span>
+            <span class="n">corners</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_corners</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">show_results</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_show_corners</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">corners</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">image_points</span><span class="p">[</span><span class="n">side</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">corners</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="n">side</span> <span class="o">=</span> <span class="s">&quot;right&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">image_count</span> <span class="o">+=</span> <span class="mi">1</span>
+</div>
+<div class="viewcode-block" id="StereoCalibrator.calibrate_cameras"><a class="viewcode-back" href="../../development.html#stereovision.calibration.StereoCalibrator.calibrate_cameras">[docs]</a>    <span class="k">def</span> <span class="nf">calibrate_cameras</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calibrate cameras based on found chessboard corners.&quot;&quot;&quot;</span>
+        <span class="n">criteria</span> <span class="o">=</span> <span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">TERM_CRITERIA_MAX_ITER</span> <span class="o">+</span> <span class="n">cv2</span><span class="o">.</span><span class="n">TERM_CRITERIA_EPS</span><span class="p">,</span>
+                    <span class="mi">100</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">)</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">CALIB_FIX_ASPECT_RATIO</span> <span class="o">+</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CALIB_ZERO_TANGENT_DIST</span> <span class="o">+</span>
+                 <span class="n">cv2</span><span class="o">.</span><span class="n">CALIB_SAME_FOCAL_LENGTH</span><span class="p">)</span>
+        <span class="n">calib</span> <span class="o">=</span> <span class="n">StereoCalibration</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">calib</span><span class="o">.</span><span class="n">cam_mats</span><span class="p">[</span><span class="s">&quot;left&quot;</span><span class="p">],</span> <span class="n">calib</span><span class="o">.</span><span class="n">dist_coefs</span><span class="p">[</span><span class="s">&quot;left&quot;</span><span class="p">],</span>
+         <span class="n">calib</span><span class="o">.</span><span class="n">cam_mats</span><span class="p">[</span><span class="s">&quot;right&quot;</span><span class="p">],</span> <span class="n">calib</span><span class="o">.</span><span class="n">dist_coefs</span><span class="p">[</span><span class="s">&quot;right&quot;</span><span class="p">],</span>
+         <span class="n">calib</span><span class="o">.</span><span class="n">rot_mat</span><span class="p">,</span> <span class="n">calib</span><span class="o">.</span><span class="n">trans_vec</span><span class="p">,</span> <span class="n">calib</span><span class="o">.</span><span class="n">e_mat</span><span class="p">,</span>
+         <span class="n">calib</span><span class="o">.</span><span class="n">f_mat</span><span class="p">)</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">stereoCalibrate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object_points</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">image_points</span><span class="p">[</span><span class="s">&quot;left&quot;</span><span class="p">],</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">image_points</span><span class="p">[</span><span class="s">&quot;right&quot;</span><span class="p">],</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">image_size</span><span class="p">,</span>
+                                            <span class="n">criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">,</span>
+                                            <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="p">(</span><span class="n">calib</span><span class="o">.</span><span class="n">rect_trans</span><span class="p">[</span><span class="s">&quot;left&quot;</span><span class="p">],</span> <span class="n">calib</span><span class="o">.</span><span class="n">rect_trans</span><span class="p">[</span><span class="s">&quot;right&quot;</span><span class="p">],</span>
+         <span class="n">calib</span><span class="o">.</span><span class="n">proj_mats</span><span class="p">[</span><span class="s">&quot;left&quot;</span><span class="p">],</span> <span class="n">calib</span><span class="o">.</span><span class="n">proj_mats</span><span class="p">[</span><span class="s">&quot;right&quot;</span><span class="p">],</span>
+         <span class="n">calib</span><span class="o">.</span><span class="n">disp_to_depth_mat</span><span class="p">,</span> <span class="n">calib</span><span class="o">.</span><span class="n">valid_boxes</span><span class="p">[</span><span class="s">&quot;left&quot;</span><span class="p">],</span>
+         <span class="n">calib</span><span class="o">.</span><span class="n">valid_boxes</span><span class="p">[</span><span class="s">&quot;right&quot;</span><span class="p">])</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">stereoRectify</span><span class="p">(</span><span class="n">calib</span><span class="o">.</span><span class="n">cam_mats</span><span class="p">[</span><span class="s">&quot;left&quot;</span><span class="p">],</span>
+                                                      <span class="n">calib</span><span class="o">.</span><span class="n">dist_coefs</span><span class="p">[</span><span class="s">&quot;left&quot;</span><span class="p">],</span>
+                                                      <span class="n">calib</span><span class="o">.</span><span class="n">cam_mats</span><span class="p">[</span><span class="s">&quot;right&quot;</span><span class="p">],</span>
+                                                      <span class="n">calib</span><span class="o">.</span><span class="n">dist_coefs</span><span class="p">[</span><span class="s">&quot;right&quot;</span><span class="p">],</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">image_size</span><span class="p">,</span>
+                                                      <span class="n">calib</span><span class="o">.</span><span class="n">rot_mat</span><span class="p">,</span>
+                                                      <span class="n">calib</span><span class="o">.</span><span class="n">trans_vec</span><span class="p">,</span>
+                                                      <span class="n">flags</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;left&quot;</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">):</span>
+            <span class="p">(</span><span class="n">calib</span><span class="o">.</span><span class="n">undistortion_map</span><span class="p">[</span><span class="n">side</span><span class="p">],</span>
+             <span class="n">calib</span><span class="o">.</span><span class="n">rectification_map</span><span class="p">[</span><span class="n">side</span><span class="p">])</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">initUndistortRectifyMap</span><span class="p">(</span>
+                                                        <span class="n">calib</span><span class="o">.</span><span class="n">cam_mats</span><span class="p">[</span><span class="n">side</span><span class="p">],</span>
+                                                        <span class="n">calib</span><span class="o">.</span><span class="n">dist_coefs</span><span class="p">[</span><span class="n">side</span><span class="p">],</span>
+                                                        <span class="n">calib</span><span class="o">.</span><span class="n">rect_trans</span><span class="p">[</span><span class="n">side</span><span class="p">],</span>
+                                                        <span class="n">calib</span><span class="o">.</span><span class="n">proj_mats</span><span class="p">[</span><span class="n">side</span><span class="p">],</span>
+                                                        <span class="bp">self</span><span class="o">.</span><span class="n">image_size</span><span class="p">,</span>
+                                                        <span class="n">cv2</span><span class="o">.</span><span class="n">CV_32FC1</span><span class="p">)</span>
+        <span class="c"># This is replaced because my results were always bad. Estimates are</span>
+        <span class="c"># taken from the OpenCV samples.</span>
+        <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_size</span>
+        <span class="n">focal_length</span> <span class="o">=</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="n">width</span>
+        <span class="n">calib</span><span class="o">.</span><span class="n">disp_to_depth_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">width</span><span class="p">],</span>
+                                              <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">height</span><span class="p">],</span>
+                                              <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">focal_length</span><span class="p">],</span>
+                                              <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">calib</span>
+</div>
+<div class="viewcode-block" id="StereoCalibrator.check_calibration"><a class="viewcode-back" href="../../development.html#stereovision.calibration.StereoCalibrator.check_calibration">[docs]</a>    <span class="k">def</span> <span class="nf">check_calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calibration</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check calibration quality by computing average reprojection error.</span>
+
+<span class="sd">        First, undistort detected points and compute epilines for each side.</span>
+<span class="sd">        Then compute the error between the computed epipolar lines and the</span>
+<span class="sd">        position of the points detected on the other side for each point and</span>
+<span class="sd">        return the average error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sides</span> <span class="o">=</span> <span class="s">&quot;left&quot;</span><span class="p">,</span> <span class="s">&quot;right&quot;</span>
+        <span class="n">which_image</span> <span class="o">=</span> <span class="p">{</span><span class="n">sides</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sides</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="mi">2</span><span class="p">}</span>
+        <span class="n">undistorted</span><span class="p">,</span> <span class="n">lines</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="n">sides</span><span class="p">:</span>
+            <span class="n">undistorted</span><span class="p">[</span><span class="n">side</span><span class="p">]</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">undistortPoints</span><span class="p">(</span>
+                         <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_points</span><span class="p">[</span><span class="n">side</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                                                                         <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                         <span class="n">calibration</span><span class="o">.</span><span class="n">cam_mats</span><span class="p">[</span><span class="n">side</span><span class="p">],</span>
+                         <span class="n">calibration</span><span class="o">.</span><span class="n">dist_coefs</span><span class="p">[</span><span class="n">side</span><span class="p">],</span>
+                         <span class="n">P</span><span class="o">=</span><span class="n">calibration</span><span class="o">.</span><span class="n">cam_mats</span><span class="p">[</span><span class="n">side</span><span class="p">])</span>
+            <span class="n">lines</span><span class="p">[</span><span class="n">side</span><span class="p">]</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">computeCorrespondEpilines</span><span class="p">(</span><span class="n">undistorted</span><span class="p">[</span><span class="n">side</span><span class="p">],</span>
+                                              <span class="n">which_image</span><span class="p">[</span><span class="n">side</span><span class="p">],</span>
+                                              <span class="n">calibration</span><span class="o">.</span><span class="n">f_mat</span><span class="p">)</span>
+        <span class="n">total_error</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">this_side</span><span class="p">,</span> <span class="n">other_side</span> <span class="o">=</span> <span class="n">sides</span>
+        <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="n">sides</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">undistorted</span><span class="p">[</span><span class="n">side</span><span class="p">])):</span>
+                <span class="n">total_error</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">undistorted</span><span class="p">[</span><span class="n">this_side</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span>
+                                   <span class="n">lines</span><span class="p">[</span><span class="n">other_side</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span>
+                                   <span class="n">undistorted</span><span class="p">[</span><span class="n">this_side</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span>
+                                   <span class="n">lines</span><span class="p">[</span><span class="n">other_side</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span>
+                                   <span class="n">lines</span><span class="p">[</span><span class="n">other_side</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">other_side</span><span class="p">,</span> <span class="n">this_side</span> <span class="o">=</span> <span class="n">sides</span>
+        <span class="n">total_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_count</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object_points</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">total_error</span> <span class="o">/</span> <span class="n">total_points</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">StereoVision 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Lee.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

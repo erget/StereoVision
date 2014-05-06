@@ -1,0 +1,326 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>stereovision.ui_utils &mdash; StereoVision 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="StereoVision 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">StereoVision 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for stereovision.ui_utils</h1><div class="highlight"><pre>
+<span class="c"># Copyright (C) 2014 Daniel Lee &lt;lee.daniel.1986@gmail.com&gt;</span>
+<span class="c">#</span>
+<span class="c"># This file is part of StereoVision.</span>
+<span class="c">#</span>
+<span class="c"># StereoVision is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># StereoVision is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License</span>
+<span class="c"># along with StereoVision.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for easing user interaction with the ``stereovision`` package.</span>
+
+<span class="sd">Variables:</span>
+
+<span class="sd">    * ``CHESSBOARD_ARGUMENTS`` - ``argparse.ArgumentParser`` for working with</span>
+<span class="sd">      chessboards</span>
+<span class="sd">    * ``STEREO_BM_FLAG`` - ``argparse.ArgumentParser`` for using StereoBM</span>
+
+<span class="sd">Functions:</span>
+
+<span class="sd">    * ``find_files`` - Discover stereo images in directory</span>
+<span class="sd">    * ``calibrate_folder`` - Calibrate chessboard images discoverd in a folder</span>
+
+<span class="sd">Classes:</span>
+
+<span class="sd">    * ``BMTuner`` - Tune block matching algorithm to camera pair</span>
+
+<span class="sd">.. image:: classes_ui_utils.svg</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">ArgumentParser</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">from</span> <span class="nn">progressbar</span> <span class="kn">import</span> <span class="n">ProgressBar</span><span class="p">,</span> <span class="n">Percentage</span><span class="p">,</span> <span class="n">Bar</span>
+<span class="kn">from</span> <span class="nn">stereovision.calibration</span> <span class="kn">import</span> <span class="n">StereoCalibrator</span>
+<span class="kn">from</span> <span class="nn">stereovision.exceptions</span> <span class="kn">import</span> <span class="n">BadBlockMatcherArgumentError</span>
+
+<span class="c">#: Command line arguments for collecting information about chessboards</span>
+<span class="n">CHESSBOARD_ARGUMENTS</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span><span class="n">add_help</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">CHESSBOARD_ARGUMENTS</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&quot;--rows&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                                  <span class="n">help</span><span class="o">=</span><span class="s">&quot;Number of inside corners in the &quot;</span>
+                                  <span class="s">&quot;chessboard&#39;s rows.&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<span class="n">CHESSBOARD_ARGUMENTS</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&quot;--columns&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                                  <span class="n">help</span><span class="o">=</span><span class="s">&quot;Number of inside corners in the &quot;</span>
+                                  <span class="s">&quot;chessboard&#39;s columns.&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="n">CHESSBOARD_ARGUMENTS</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&quot;--square-size&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;Size of chessboard &quot;</span>
+                                  <span class="s">&quot;squares in cm.&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
+
+
+<span class="c">#: Command line arguments for using StereoBM rather than StereoSGBM</span>
+<span class="n">STEREO_BM_FLAG</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span><span class="n">add_help</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">STEREO_BM_FLAG</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&quot;--use_stereobm&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;Use StereoBM rather than &quot;</span>
+                              <span class="s">&quot;StereoSGBM block matcher.&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&quot;store_true&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="find_files"><a class="viewcode-back" href="../../development.html#stereovision.ui_utils.find_files">[docs]</a><span class="k">def</span> <span class="nf">find_files</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Discover stereo photos and return them as a pairwise sorted list.&quot;&quot;&quot;</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;left&quot;</span><span class="p">)]</span>
+    <span class="n">files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)):</span>
+        <span class="n">insert_string</span> <span class="o">=</span> <span class="s">&quot;right{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="p">][</span><span class="mi">4</span><span class="p">:])</span>
+        <span class="n">files</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">insert_string</span><span class="p">)</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">files</span>
+
+</div>
+<div class="viewcode-block" id="calibrate_folder"><a class="viewcode-back" href="../../development.html#stereovision.ui_utils.calibrate_folder">[docs]</a><span class="k">def</span> <span class="nf">calibrate_folder</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calibrate camera based on chessboard images, write results to output folder.</span>
+
+<span class="sd">    All images are read from disk. Chessboard points are found and used to</span>
+<span class="sd">    calibrate the stereo pair. Finally, the calibration is written to the folder</span>
+<span class="sd">    specified in ``args``.</span>
+
+<span class="sd">    ``args`` needs to contain the following fields:</span>
+<span class="sd">        input_files: List of paths to input files</span>
+<span class="sd">        rows: Number of rows in chessboard</span>
+<span class="sd">        columns: Number of columns in chessboard</span>
+<span class="sd">        square_size: Size of chessboard squares in cm</span>
+<span class="sd">        output_folder: Folder to write calibration to</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input_files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">calibrator</span> <span class="o">=</span> <span class="n">StereoCalibrator</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">square_size</span><span class="p">,</span>
+                                  <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+    <span class="n">progress</span> <span class="o">=</span> <span class="n">ProgressBar</span><span class="p">(</span><span class="n">maxval</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input_files</span><span class="p">),</span>
+                          <span class="n">widgets</span><span class="o">=</span><span class="p">[</span><span class="n">Bar</span><span class="p">(</span><span class="s">&quot;=&quot;</span><span class="p">,</span> <span class="s">&quot;[&quot;</span><span class="p">,</span> <span class="s">&quot;]&quot;</span><span class="p">),</span>
+                          <span class="s">&quot; &quot;</span><span class="p">,</span> <span class="n">Percentage</span><span class="p">()])</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Reading input files...&quot;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">args</span><span class="o">.</span><span class="n">input_files</span><span class="p">:</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">input_files</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">img_left</span><span class="p">,</span> <span class="n">im_right</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">left</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+        <span class="n">calibrator</span><span class="o">.</span><span class="n">add_corners</span><span class="p">((</span><span class="n">img_left</span><span class="p">,</span> <span class="n">im_right</span><span class="p">),</span>
+                               <span class="n">show_results</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">show_chessboards</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">input_files</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">input_files</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">progress</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">progress</span><span class="o">.</span><span class="n">maxval</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input_files</span><span class="p">))</span>
+
+    <span class="n">progress</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Calibrating cameras. This can take a while.&quot;</span><span class="p">)</span>
+    <span class="n">calibration</span> <span class="o">=</span> <span class="n">calibrator</span><span class="o">.</span><span class="n">calibrate_cameras</span><span class="p">()</span>
+    <span class="n">avg_error</span> <span class="o">=</span> <span class="n">calibrator</span><span class="o">.</span><span class="n">check_calibration</span><span class="p">(</span><span class="n">calibration</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;The average error between chessboard points and their epipolar &quot;</span>
+          <span class="s">&quot;lines is </span><span class="se">\n</span><span class="s">&quot;</span>
+          <span class="s">&quot;{} pixels. This should be as small as possible.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">avg_error</span><span class="p">))</span>
+    <span class="n">calibration</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output_folder</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="BMTuner"><a class="viewcode-back" href="../../development.html#stereovision.ui_utils.BMTuner">[docs]</a><span class="k">class</span> <span class="nc">BMTuner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for tuning Stereo BM settings.</span>
+
+<span class="sd">    Display a normalized disparity picture from two pictures captured with a</span>
+<span class="sd">    ``CalibratedPair`` and allow the user to manually tune the settings for the</span>
+<span class="sd">    ``BlockMatcher``.</span>
+
+<span class="sd">    The settable parameters are intelligently read from the ``BlockMatcher``,</span>
+<span class="sd">    relying on the ``BlockMatcher`` exposing them as ``parameter_maxima``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c">#: Window to show results in</span>
+    <span class="n">window_name</span> <span class="o">=</span> <span class="s">&quot;BM Tuner&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">new_value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Try setting new parameter on ``block_matcher`` and update map.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">block_matcher</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">new_value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">BadBlockMatcherArgumentError</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_disparity_map</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_initialize_trackbars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize trackbars by discovering ``block_matcher``&#39;s parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_matcher</span><span class="o">.</span><span class="n">parameter_maxima</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">maximum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_matcher</span><span class="o">.</span><span class="n">parameter_maxima</span><span class="p">[</span><span class="n">parameter</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">maximum</span><span class="p">:</span>
+                <span class="n">maximum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shortest_dimension</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">createTrackbar</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_name</span><span class="p">,</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">block_matcher</span><span class="o">.</span><span class="n">__getattribute__</span><span class="p">(</span><span class="n">parameter</span><span class="p">),</span>
+                               <span class="n">maximum</span><span class="p">,</span>
+                               <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_save_bm_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save current state of ``block_matcher``.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_matcher</span><span class="o">.</span><span class="n">parameter_maxima</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bm_settings</span><span class="p">[</span><span class="n">parameter</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">block_matcher</span><span class="o">.</span><span class="n">__getattribute__</span><span class="p">(</span><span class="n">parameter</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block_matcher</span><span class="p">,</span> <span class="n">calibration</span><span class="p">,</span> <span class="n">image_pair</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize tuner window and tune given pair.</span>
+
+<span class="sd">        ``block_matcher`` is a ``BlockMatcher``, ``calibration`` is a</span>
+<span class="sd">        ``StereoCalibration`` and ``image_pair`` is a rectified image pair.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#: Stereo calibration to find Stereo BM settings for</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calibration</span> <span class="o">=</span> <span class="n">calibration</span>
+        <span class="c">#: (left, right) image pair to find disparity between</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pair</span> <span class="o">=</span> <span class="n">image_pair</span>
+        <span class="c">#: Block matcher to be tuned</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">block_matcher</span> <span class="o">=</span> <span class="n">block_matcher</span>
+        <span class="c">#: Shortest dimension of image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shortest_dimension</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+        <span class="c">#: Settings chosen for ``BlockMatcher``</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bm_settings</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_matcher</span><span class="o">.</span><span class="n">parameter_maxima</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bm_settings</span><span class="p">[</span><span class="n">parameter</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">namedWindow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_trackbars</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tune_pair</span><span class="p">(</span><span class="n">image_pair</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BMTuner.update_disparity_map"><a class="viewcode-back" href="../../development.html#stereovision.ui_utils.BMTuner.update_disparity_map">[docs]</a>    <span class="k">def</span> <span class="nf">update_disparity_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update disparity map in GUI.</span>
+
+<span class="sd">        The disparity image is normalized to the range 0-255 and then divided by</span>
+<span class="sd">        255, because OpenCV multiplies it by 255 when displaying. This is</span>
+<span class="sd">        because the pixels are stored as floating points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">disparity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_matcher</span><span class="o">.</span><span class="n">get_disparity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pair</span><span class="p">)</span>
+        <span class="n">norm_coeff</span> <span class="o">=</span> <span class="mi">255</span> <span class="o">/</span> <span class="n">disparity</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_name</span><span class="p">,</span> <span class="n">disparity</span> <span class="o">*</span> <span class="n">norm_coeff</span> <span class="o">/</span> <span class="mi">255</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">waitKey</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="BMTuner.tune_pair"><a class="viewcode-back" href="../../development.html#stereovision.ui_utils.BMTuner.tune_pair">[docs]</a>    <span class="k">def</span> <span class="nf">tune_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pair</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tune a pair of images.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_bm_state</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pair</span> <span class="o">=</span> <span class="n">pair</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_disparity_map</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="BMTuner.report_settings"><a class="viewcode-back" href="../../development.html#stereovision.ui_utils.BMTuner.report_settings">[docs]</a>    <span class="k">def</span> <span class="nf">report_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Report chosen settings for ``parameter`` in ``block_matcher``.</span>
+
+<span class="sd">        ``bm_settings`` is updated to include the latest state before work is</span>
+<span class="sd">        begun. This state is removed at the end so that the method has no side</span>
+<span class="sd">        effects. All settings are reported except for the first one on record,</span>
+<span class="sd">        which is ``block_matcher``&#39;s default setting.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_bm_state</span><span class="p">()</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">settings_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bm_settings</span><span class="p">[</span><span class="n">parameter</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">unique_values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">settings_list</span><span class="p">))</span>
+        <span class="n">value_frequency</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">unique_values</span><span class="p">:</span>
+            <span class="n">value_frequency</span><span class="p">[</span><span class="n">settings_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">value</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">frequencies</span> <span class="o">=</span> <span class="n">value_frequency</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">frequencies</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="s">&quot;{} value | Selection frequency&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+        <span class="n">left_column_width</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">[:</span><span class="o">-</span><span class="mi">21</span><span class="p">])</span>
+        <span class="n">right_column_width</span> <span class="o">=</span> <span class="mi">21</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;{}|{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;-&quot;</span> <span class="o">*</span> <span class="n">left_column_width</span><span class="p">,</span>
+                                    <span class="s">&quot;-&quot;</span> <span class="o">*</span> <span class="n">right_column_width</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">frequency</span> <span class="ow">in</span> <span class="n">frequencies</span><span class="p">:</span>
+            <span class="n">left_column</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value_frequency</span><span class="p">[</span><span class="n">frequency</span><span class="p">])</span><span class="o">.</span><span class="n">center</span><span class="p">(</span>
+                                                             <span class="n">left_column_width</span><span class="p">)</span>
+            <span class="n">right_column</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">frequency</span><span class="p">)</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">right_column_width</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;{}|{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">left_column</span><span class="p">,</span> <span class="n">right_column</span><span class="p">))</span>
+        <span class="c"># Remove newest settings</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_matcher</span><span class="o">.</span><span class="n">parameter_maxima</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bm_settings</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">StereoVision 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Daniel Lee.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
