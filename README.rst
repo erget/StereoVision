@@ -3,9 +3,7 @@ StereoVision: Library and utilities for 3d reconstruction from stereo cameras
 
 StereoVision is a package for working with stereo cameras, especially with the
 intent of using them to produce 3D point clouds. The focus is on performance,
-ease of usability, and the ability to construct 3D imaging setups cheaply. For
-more information, see the Sphinx autodocumentation, built with the Makefile
-included in ``doc``.
+ease of usability, and the ability to construct 3D imaging setups cheaply.
 
 StereoVision relies heavily on OpenCV. If you're not sure about what a given
 variable does or what values would make sense for it and no explanation is
