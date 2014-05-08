@@ -50,7 +50,7 @@ help:
 
 clean:
 	rm -rf $(BUILDDIR)/*
-	rm *svg
+	rm -f *svg
 
 html: autographics
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
