@@ -1,0 +1,38 @@
+#!/usr/bin/python
+# Copyright (C) 2014 Daniel Lee <lee.daniel.1986@gmail.com>
+#
+# This file is part of StereoVision.
+#
+# StereoVision is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# StereoVision is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with StereoVision.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+A simple demo for showing how to generate disparity maps from rectified image pair
+"""
+import cv2
+import imp
+import stereovision
+
+from stereovision.blockmatchers import StereoBM, StereoSGBM
+from stereovision.calibration import StereoCalibration
+from stereovision.stereo_cameras import CalibratedPair
+from stereovision.ui_utils import STEREO_BM_FLAG, BMTuner
+
+# Specify paths to left and right camera images below.
+# The images must be calibrated and rectified.
+image_path = imp.find_module('stereovision')[1]
+image_pair = [cv2.imread(image) for image in [image_path + "/disparity_demo_left.pnm", image_path + "/disparity_demo_right.pnm"]]
+
+block_matcher = StereoBM() # or StereoSGBM() which is a semi-global block matcher
+
+bm_tuner_gui = BMTuner(block_matcher, None, image_pair)
