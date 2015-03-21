@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with StereoVision.  If not, see <http://www.gnu.org/licenses/>.
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(name="StereoVision",
-      version="1.0.0",
+      version="1.0.1",
       description=("Library and utilities for 3d reconstruction from stereo "
                    "cameras."),
       long_description=open("README.rst").read(),

@@ -1,1 +1,2 @@
+v1.0.1, 21 March 2015 -- Fix UI bug
 v1.0.0, 2 May 2014 -- Initial release
