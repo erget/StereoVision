@@ -61,6 +61,7 @@ def main():
                           " ", Percentage()])
     if not os.path.exists(args.output_folder):
         os.makedirs(args.output_folder)
+    progress.start()
     with ChessboardFinder((args.left, args.right)) as pair:
         for i in range(args.num_pictures):
             frames = pair.get_chessboard(args.columns, args.rows, True)
