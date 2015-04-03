@@ -27,8 +27,8 @@
     <link rel="next" title="StereoVision source documentation" href="development.html" />
     <link rel="prev" title="StereoVision: Library and utilities for 3d reconstruction from stereo cameras" href="index.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -43,22 +43,22 @@
         <li class="right" >
           <a href="index.html" title="StereoVision: Library and utilities for 3d reconstruction from stereo cameras"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">StereoVision 1.0.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">StereoVision 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="using-stereovision">
 <h1>Using StereoVision<a class="headerlink" href="#using-stereovision" title="Permalink to this headline">¶</a></h1>
-<p><tt class="docutils literal"><span class="pre">StereoVision</span></tt> offers a number of command line utilities that you can use in
+<p><code class="docutils literal"><span class="pre">StereoVision</span></code> offers a number of command line utilities that you can use in
 order to produce 3d point clouds from stereo images. They are listed in the
 following table, roughly in the order that you would use them if you were to
 set up a project of your own from scratch. Usage information can be obtained on
-the command line by calling them with the <tt class="docutils literal"><span class="pre">-h</span></tt> and <tt class="docutils literal"><span class="pre">--help</span></tt> flags.</p>
+the command line by calling them with the <code class="docutils literal"><span class="pre">-h</span></code> and <code class="docutils literal"><span class="pre">--help</span></code> flags.</p>
 <blockquote>
 <div><table border="1" class="docutils">
 <colgroup>
@@ -71,26 +71,26 @@ the command line by calling them with the <tt class="docutils literal"><span cla
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">show_webcams</span></tt></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">show_webcams</span></code></td>
 <td>Show output from stereo camera pair, optionally
 capture images</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">capture_chessboards</span></tt></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">capture_chessboards</span></code></td>
 <td>Capture images of chessboards simultaneously
 visible from both cameras in stereo pair for
 the purpose of calibrating the camera pair.
 Optionally calibrate camera pair online.</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">calibrate_cameras</span></tt></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">calibrate_cameras</span></code></td>
 <td>Calibrate stereo pair using previously captured
 chessboard images</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">tune_blockmatcher</span></tt></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tune_blockmatcher</span></code></td>
 <td>Manually tune block matching algorithm to
 produce good disparity maps with a given stereo
 pair</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">images_to_pointcloud</span></tt></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">images_to_pointcloud</span></code></td>
 <td>Convert image pairs captured with a calibrated
 stereo pair to a colored 3d point cloud</td>
 </tr>
@@ -98,9 +98,9 @@ stereo pair to a colored 3d point cloud</td>
 </table>
 </div></blockquote>
 <p>These scripts can also be used as examples for how to use the classes in
-<tt class="docutils literal"><span class="pre">StereoVision</span></tt>.</p>
+<code class="docutils literal"><span class="pre">StereoVision</span></code>.</p>
 <blockquote>
-<div>If you&#8217;d like to use the library classes available in <tt class="docutils literal"><span class="pre">StereoVision</span></tt>, see
+<div>If you&#8217;d like to use the library classes available in <code class="docutils literal"><span class="pre">StereoVision</span></code>, see
 the <a class="reference external" href="development.html">developer documentation</a>.</div></blockquote>
 </div>
 
@@ -108,7 +108,7 @@ the <a class="reference external" href="development.html">developer documentatio
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
@@ -116,12 +116,14 @@ the <a class="reference external" href="development.html">developer documentatio
   <h4>Next topic</h4>
   <p class="topless"><a href="development.html"
                         title="next chapter">StereoVision source documentation</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/usage.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/usage.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -138,7 +140,7 @@ the <a class="reference external" href="development.html">developer documentatio
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -153,12 +155,12 @@ the <a class="reference external" href="development.html">developer documentatio
         <li class="right" >
           <a href="index.html" title="StereoVision: Library and utilities for 3d reconstruction from stereo cameras"
              >previous</a> |</li>
-        <li><a href="index.html">StereoVision 1.0.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">StereoVision 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Daniel Lee.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
     </div>
   </body>
 </html>

@@ -26,8 +26,8 @@
     <link rel="top" title="StereoVision 1.0.0 documentation" href="#" />
     <link rel="next" title="Using StereoVision" href="usage.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -39,28 +39,27 @@
         <li class="right" >
           <a href="usage.html" title="Using StereoVision"
              accesskey="N">next</a> |</li>
-        <li><a href="#">StereoVision 1.0.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="#">StereoVision 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="stereovision-library-and-utilities-for-3d-reconstruction-from-stereo-cameras">
 <h1>StereoVision: Library and utilities for 3d reconstruction from stereo cameras<a class="headerlink" href="#stereovision-library-and-utilities-for-3d-reconstruction-from-stereo-cameras" title="Permalink to this headline">¶</a></h1>
 <p>StereoVision is a package for working with stereo cameras, especially with the
 intent of using them to produce 3D point clouds. The focus is on performance,
-ease of usability, and the ability to construct 3D imaging setups cheaply. For
-more information, see the Sphinx autodocumentation, built with the Makefile
-included in <tt class="docutils literal"><span class="pre">doc</span></tt>.</p>
+ease of usability, and the ability to construct 3D imaging setups cheaply.</p>
 <p>StereoVision relies heavily on OpenCV. If you&#8217;re not sure about what a given
 variable does or what values would make sense for it and no explanation is
 provided in the StereoVision documentation, refer to OpenCV&#8217;s documentation in
 order to better understand how they work.</p>
 <p>It&#8217;s available on PyPI, so you can install it like this:</p>
-<div class="highlight-python"><pre>pip install StereoVision</pre>
+<div class="highlight-python"><div class="highlight"><pre>pip install StereoVision
+</pre></div>
 </div>
 <p>If you find a bug or would like to request a feature, please <a class="reference external" href="https://github.com/erget/StereoVision/issues">report it with
 the issue tracker</a>. If you&#8217;d
@@ -73,11 +72,11 @@ cool with it though.</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Using StereoVision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">StereoVision source documentation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="development.html#module-stereovision.stereo_cameras">Camera interfaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#module-stereovision.calibration">Camera calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#module-stereovision.blockmatchers">Block matchers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#camera-interfaces">Camera interfaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#camera-calibration">Camera calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#block-matchers">Block matchers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="development.html#module-stereovision.point_cloud">Point clouds</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development.html#module-stereovision.ui_utils">User interface utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#user-interface-utilities">User interface utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="development.html#module-stereovision.exceptions">Exceptions</a></li>
 </ul>
 </li>
@@ -88,9 +87,9 @@ cool with it though.</p>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
-<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
-<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+<li><a class="reference internal" href="genindex.html"><span>Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span>Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span>Search Page</span></a></li>
 </ul>
 </div>
 
@@ -98,25 +97,25 @@ cool with it though.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">StereoVision: Library and utilities for 3d reconstruction from stereo cameras</a><ul>
-</ul>
-</li>
+<li><a class="reference internal" href="#">StereoVision: Library and utilities for 3d reconstruction from stereo cameras</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 
   <h4>Next topic</h4>
   <p class="topless"><a href="usage.html"
                         title="next chapter">Using StereoVision</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/index.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -133,7 +132,7 @@ cool with it though.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -145,12 +144,12 @@ cool with it though.</p>
         <li class="right" >
           <a href="usage.html" title="Using StereoVision"
              >next</a> |</li>
-        <li><a href="#">StereoVision 1.0.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="#">StereoVision 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Daniel Lee.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
     </div>
   </body>
 </html>

@@ -27,8 +27,8 @@
     <link rel="next" title="Changes" href="changes.html" />
     <link rel="prev" title="Using StereoVision" href="usage.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -43,14 +43,14 @@
         <li class="right" >
           <a href="usage.html" title="Using StereoVision"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">StereoVision 1.0.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">StereoVision 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="module-stereovision">
 <span id="stereovision-source-documentation"></span><h1>StereoVision source documentation<a class="headerlink" href="#module-stereovision" title="Permalink to this headline">¶</a></h1>
@@ -58,575 +58,24 @@
 <p>Modules:</p>
 <blockquote>
 <div><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">stereo_cameras</span></tt> - Camera interfaces</li>
-<li><tt class="docutils literal"><span class="pre">calibration</span></tt> - Tools for calibrating stereo cameras</li>
-<li><tt class="docutils literal"><span class="pre">blockmatchers</span></tt> - Blockmatching algorithm matchers</li>
-<li><tt class="docutils literal"><span class="pre">point_cloud</span></tt> - Point clouds</li>
-<li><tt class="docutils literal"><span class="pre">ui_utils</span></tt> - Utilities for user interaction</li>
-<li><tt class="docutils literal"><span class="pre">exceptions</span></tt> - Various exceptions</li>
+<li><code class="docutils literal"><span class="pre">stereo_cameras</span></code> - Camera interfaces</li>
+<li><code class="docutils literal"><span class="pre">calibration</span></code> - Tools for calibrating stereo cameras</li>
+<li><code class="docutils literal"><span class="pre">blockmatchers</span></code> - Blockmatching algorithm matchers</li>
+<li><code class="docutils literal"><span class="pre">point_cloud</span></code> - Point clouds</li>
+<li><code class="docutils literal"><span class="pre">ui_utils</span></code> - Utilities for user interaction</li>
+<li><code class="docutils literal"><span class="pre">exceptions</span></code> - Various exceptions</li>
 </ul>
 </div></blockquote>
 <p>Import structure:</p>
 <a class="reference internal image-reference" href="_images/packages_StereoVision.svg"><img src="_images/packages_StereoVision.svg" width="100%" /></a>
-<div class="section" id="module-stereovision.stereo_cameras">
-<span id="camera-interfaces"></span><h2>Camera interfaces<a class="headerlink" href="#module-stereovision.stereo_cameras" title="Permalink to this headline">¶</a></h2>
-<p>Classes for interacting with stereo cameras.</p>
-<p>Classes:</p>
-<blockquote>
-<div><ul>
-<li><p class="first"><tt class="docutils literal"><span class="pre">StereoPair</span></tt> - Base class for interacting with stereo cameras</p>
-<blockquote>
-<div><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">ChessboardFinder</span></tt> - Class for finding chessboards with both cameras</li>
-<li><tt class="docutils literal"><span class="pre">CalibratedPair</span></tt> - Calibrated stereo camera pair that rectifies its
-images</li>
-</ul>
-</div></blockquote>
-</li>
-</ul>
-</div></blockquote>
-<img src="_images/classes_stereo_cameras.svg" /><dl class="class">
-<dt id="stereovision.stereo_cameras.StereoPair">
-<em class="property">class </em><tt class="descclassname">stereovision.stereo_cameras.</tt><tt class="descname">StereoPair</tt><big>(</big><em>devices</em><big>)</big><a class="reference internal" href="_modules/stereovision/stereo_cameras.html#StereoPair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.stereo_cameras.StereoPair" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>A stereo pair of cameras.</p>
-<p>This class allows both cameras in a stereo pair to be accessed
-simultaneously. It also allows the user to show single frames or videos
-captured online with the cameras. It should be instantiated with a context
-manager to ensure that the cameras are freed properly after use.</p>
-<p>Initialize cameras.</p>
-<p><tt class="docutils literal"><span class="pre">devices</span></tt> is an iterable containing the device numbers.</p>
-<dl class="attribute">
-<dt id="stereovision.stereo_cameras.StereoPair.windows">
-<tt class="descname">windows</tt><em class="property"> = ['Left camera', 'Right camera']</em><a class="headerlink" href="#stereovision.stereo_cameras.StereoPair.windows" title="Permalink to this definition">¶</a></dt>
-<dd><p>Window names for showing captured frame from each camera</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.stereo_cameras.StereoPair.captures">
-<tt class="descname">captures</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.stereo_cameras.StereoPair.captures" title="Permalink to this definition">¶</a></dt>
-<dd><p>Video captures associated with the <tt class="docutils literal"><span class="pre">StereoPair</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.stereo_cameras.StereoPair.get_frames">
-<tt class="descname">get_frames</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/stereovision/stereo_cameras.html#StereoPair.get_frames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.stereo_cameras.StereoPair.get_frames" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get current frames from cameras.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.stereo_cameras.StereoPair.show_frames">
-<tt class="descname">show_frames</tt><big>(</big><em>wait=0</em><big>)</big><a class="reference internal" href="_modules/stereovision/stereo_cameras.html#StereoPair.show_frames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.stereo_cameras.StereoPair.show_frames" title="Permalink to this definition">¶</a></dt>
-<dd><p>Show current frames from cameras.</p>
-<p><tt class="docutils literal"><span class="pre">wait</span></tt> is the wait interval in milliseconds before the window closes.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.stereo_cameras.StereoPair.show_videos">
-<tt class="descname">show_videos</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/stereovision/stereo_cameras.html#StereoPair.show_videos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.stereo_cameras.StereoPair.show_videos" title="Permalink to this definition">¶</a></dt>
-<dd><p>Show video from cameras.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="stereovision.stereo_cameras.ChessboardFinder">
-<em class="property">class </em><tt class="descclassname">stereovision.stereo_cameras.</tt><tt class="descname">ChessboardFinder</tt><big>(</big><em>devices</em><big>)</big><a class="reference internal" href="_modules/stereovision/stereo_cameras.html#ChessboardFinder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.stereo_cameras.ChessboardFinder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.stereo_cameras.StereoPair" title="stereovision.stereo_cameras.StereoPair"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.stereo_cameras.StereoPair</span></tt></a></p>
-<p>A <tt class="docutils literal"><span class="pre">StereoPair</span></tt> that can find chessboards in its images.</p>
-<p>Initialize cameras.</p>
-<p><tt class="docutils literal"><span class="pre">devices</span></tt> is an iterable containing the device numbers.</p>
-<dl class="method">
-<dt id="stereovision.stereo_cameras.ChessboardFinder.get_chessboard">
-<tt class="descname">get_chessboard</tt><big>(</big><em>columns</em>, <em>rows</em>, <em>show=False</em><big>)</big><a class="reference internal" href="_modules/stereovision/stereo_cameras.html#ChessboardFinder.get_chessboard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.stereo_cameras.ChessboardFinder.get_chessboard" title="Permalink to this definition">¶</a></dt>
-<dd><p>Take a picture with a chessboard visible in both captures.</p>
-<p><tt class="docutils literal"><span class="pre">columns</span></tt> and <tt class="docutils literal"><span class="pre">rows</span></tt> should be the number of inside corners in the
-chessboard&#8217;s columns and rows. <tt class="docutils literal"><span class="pre">show</span></tt> determines whether the frames
-are shown while the cameras search for a chessboard.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.stereo_cameras.ChessboardFinder.get_frames">
-<tt class="descname">get_frames</tt><big>(</big><big>)</big><a class="headerlink" href="#stereovision.stereo_cameras.ChessboardFinder.get_frames" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get current frames from cameras.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.stereo_cameras.ChessboardFinder.show_frames">
-<tt class="descname">show_frames</tt><big>(</big><em>wait=0</em><big>)</big><a class="headerlink" href="#stereovision.stereo_cameras.ChessboardFinder.show_frames" title="Permalink to this definition">¶</a></dt>
-<dd><p>Show current frames from cameras.</p>
-<p><tt class="docutils literal"><span class="pre">wait</span></tt> is the wait interval in milliseconds before the window closes.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.stereo_cameras.ChessboardFinder.show_videos">
-<tt class="descname">show_videos</tt><big>(</big><big>)</big><a class="headerlink" href="#stereovision.stereo_cameras.ChessboardFinder.show_videos" title="Permalink to this definition">¶</a></dt>
-<dd><p>Show video from cameras.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="stereovision.stereo_cameras.CalibratedPair">
-<em class="property">class </em><tt class="descclassname">stereovision.stereo_cameras.</tt><tt class="descname">CalibratedPair</tt><big>(</big><em>devices</em>, <em>calibration</em>, <em>block_matcher</em><big>)</big><a class="reference internal" href="_modules/stereovision/stereo_cameras.html#CalibratedPair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.stereo_cameras.CalibratedPair" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.stereo_cameras.StereoPair" title="stereovision.stereo_cameras.StereoPair"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.stereo_cameras.StereoPair</span></tt></a></p>
-<p>A <tt class="docutils literal"><span class="pre">StereoPair</span></tt> that works with rectified images and produces point clouds.</p>
-<p>Initialize cameras.</p>
-<p><tt class="docutils literal"><span class="pre">devices</span></tt> is an iterable of the device numbers. If you want to use the
-<tt class="docutils literal"><span class="pre">CalibratedPair</span></tt> in offline mode, it should be None.
-<tt class="docutils literal"><span class="pre">calibration</span></tt> is a <tt class="docutils literal"><span class="pre">StereoCalibration</span></tt> object.
-<tt class="docutils literal"><span class="pre">block_matcher</span></tt> is a <tt class="docutils literal"><span class="pre">BlockMatcher</span></tt> object.</p>
-<dl class="attribute">
-<dt id="stereovision.stereo_cameras.CalibratedPair.calibration">
-<tt class="descname">calibration</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.stereo_cameras.CalibratedPair.calibration" title="Permalink to this definition">¶</a></dt>
-<dd><p><tt class="docutils literal"><span class="pre">StereoCalibration</span></tt> object holding the camera pair&#8217;s calibration</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.stereo_cameras.CalibratedPair.block_matcher">
-<tt class="descname">block_matcher</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.stereo_cameras.CalibratedPair.block_matcher" title="Permalink to this definition">¶</a></dt>
-<dd><p><tt class="docutils literal"><span class="pre">BlockMatcher</span></tt> object for computing disparity and point cloud</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.stereo_cameras.CalibratedPair.get_frames">
-<tt class="descname">get_frames</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/stereovision/stereo_cameras.html#CalibratedPair.get_frames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.stereo_cameras.CalibratedPair.get_frames" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rectify and return current frames from cameras.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.stereo_cameras.CalibratedPair.get_point_cloud">
-<tt class="descname">get_point_cloud</tt><big>(</big><em>pair</em><big>)</big><a class="reference internal" href="_modules/stereovision/stereo_cameras.html#CalibratedPair.get_point_cloud"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.stereo_cameras.CalibratedPair.get_point_cloud" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get 3D point cloud from image pair.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.stereo_cameras.CalibratedPair.show_frames">
-<tt class="descname">show_frames</tt><big>(</big><em>wait=0</em><big>)</big><a class="headerlink" href="#stereovision.stereo_cameras.CalibratedPair.show_frames" title="Permalink to this definition">¶</a></dt>
-<dd><p>Show current frames from cameras.</p>
-<p><tt class="docutils literal"><span class="pre">wait</span></tt> is the wait interval in milliseconds before the window closes.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.stereo_cameras.CalibratedPair.show_videos">
-<tt class="descname">show_videos</tt><big>(</big><big>)</big><a class="headerlink" href="#stereovision.stereo_cameras.CalibratedPair.show_videos" title="Permalink to this definition">¶</a></dt>
-<dd><p>Show video from cameras.</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="camera-interfaces">
+<h2>Camera interfaces<a class="headerlink" href="#camera-interfaces" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-stereovision.calibration">
-<span id="camera-calibration"></span><h2>Camera calibration<a class="headerlink" href="#module-stereovision.calibration" title="Permalink to this headline">¶</a></h2>
-<p>Classes for calibrating homemade stereo cameras.</p>
-<p>Classes:</p>
-<blockquote>
-<div><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">StereoCalibration</span></tt> - Calibration for stereo camera</li>
-<li><tt class="docutils literal"><span class="pre">StereoCalibrator</span></tt> - Class to calibrate stereo camera with</li>
-</ul>
-</div></blockquote>
-<img src="_images/classes_calibration.svg" /><dl class="class">
-<dt id="stereovision.calibration.StereoCalibration">
-<em class="property">class </em><tt class="descclassname">stereovision.calibration.</tt><tt class="descname">StereoCalibration</tt><big>(</big><em>calibration=None</em>, <em>input_folder=None</em><big>)</big><a class="reference internal" href="_modules/stereovision/calibration.html#StereoCalibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.calibration.StereoCalibration" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>A stereo camera calibration.</p>
-<p>The <tt class="docutils literal"><span class="pre">StereoCalibration</span></tt> stores the calibration for a stereo pair. It can
-also rectify pictures taken from its stereo pair.</p>
-<p>Initialize camera calibration.</p>
-<p>If another calibration object is provided, copy its values. If an input
-folder is provided, load <tt class="docutils literal"><span class="pre">*.npy</span></tt> files from that folder. An input
-folder overwrites a calibration object.</p>
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.cam_mats">
-<tt class="descname">cam_mats</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.cam_mats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Camera matrices (M)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.dist_coefs">
-<tt class="descname">dist_coefs</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.dist_coefs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Distortion coefficients (D)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.rot_mat">
-<tt class="descname">rot_mat</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.rot_mat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rotation matrix (R)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.trans_vec">
-<tt class="descname">trans_vec</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.trans_vec" title="Permalink to this definition">¶</a></dt>
-<dd><p>Translation vector (T)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.e_mat">
-<tt class="descname">e_mat</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.e_mat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Essential matrix (E)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.f_mat">
-<tt class="descname">f_mat</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.f_mat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fundamental matrix (F)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.rect_trans">
-<tt class="descname">rect_trans</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.rect_trans" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rectification transforms (3x3 rectification matrix R1 / R2)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.proj_mats">
-<tt class="descname">proj_mats</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.proj_mats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Projection matrices (3x4 projection matrix P1 / P2)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.disp_to_depth_mat">
-<tt class="descname">disp_to_depth_mat</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.disp_to_depth_mat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Disparity to depth mapping matrix (4x4 matrix, Q)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.valid_boxes">
-<tt class="descname">valid_boxes</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.valid_boxes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bounding boxes of valid pixels</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.undistortion_map">
-<tt class="descname">undistortion_map</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.undistortion_map" title="Permalink to this definition">¶</a></dt>
-<dd><p>Undistortion maps for remapping</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibration.rectification_map">
-<tt class="descname">rectification_map</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibration.rectification_map" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rectification maps for remapping</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.calibration.StereoCalibration.load">
-<tt class="descname">load</tt><big>(</big><em>input_folder</em><big>)</big><a class="reference internal" href="_modules/stereovision/calibration.html#StereoCalibration.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.calibration.StereoCalibration.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load values from <tt class="docutils literal"><span class="pre">*.npy</span></tt> files in <tt class="docutils literal"><span class="pre">input_folder</span></tt>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.calibration.StereoCalibration.export">
-<tt class="descname">export</tt><big>(</big><em>output_folder</em><big>)</big><a class="reference internal" href="_modules/stereovision/calibration.html#StereoCalibration.export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.calibration.StereoCalibration.export" title="Permalink to this definition">¶</a></dt>
-<dd><p>Export matrices as <tt class="docutils literal"><span class="pre">*.npy</span></tt> files to an output folder.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.calibration.StereoCalibration.rectify">
-<tt class="descname">rectify</tt><big>(</big><em>frames</em><big>)</big><a class="reference internal" href="_modules/stereovision/calibration.html#StereoCalibration.rectify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.calibration.StereoCalibration.rectify" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rectify frames passed as (left, right) pair of OpenCV Mats.</p>
-<p>Remapping is done with nearest neighbor for speed.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="stereovision.calibration.StereoCalibrator">
-<em class="property">class </em><tt class="descclassname">stereovision.calibration.</tt><tt class="descname">StereoCalibrator</tt><big>(</big><em>rows</em>, <em>columns</em>, <em>square_size</em>, <em>image_size</em><big>)</big><a class="reference internal" href="_modules/stereovision/calibration.html#StereoCalibrator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.calibration.StereoCalibrator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>A class that calibrates stereo cameras by finding chessboard corners.</p>
-<p>Store variables relevant to the camera calibration.</p>
-<p><tt class="docutils literal"><span class="pre">corner_coordinates</span></tt> are generated by creating an array of 3D
-coordinates that correspond to the actual positions of the chessboard
-corners observed on a 2D plane in 3D space.</p>
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibrator.image_count">
-<tt class="descname">image_count</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibrator.image_count" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of calibration images</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibrator.rows">
-<tt class="descname">rows</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibrator.rows" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of inside corners in the chessboard&#8217;s rows</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibrator.columns">
-<tt class="descname">columns</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibrator.columns" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of inside corners in the chessboard&#8217;s columns</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibrator.square_size">
-<tt class="descname">square_size</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibrator.square_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Size of chessboard squares in cm</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibrator.image_size">
-<tt class="descname">image_size</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibrator.image_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Size of calibration images in pixels</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibrator.corner_coordinates">
-<tt class="descname">corner_coordinates</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibrator.corner_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Real world corner coordinates found in each image</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibrator.object_points">
-<tt class="descname">object_points</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibrator.object_points" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of real world corner coordinates to match the corners found</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.calibration.StereoCalibrator.image_points">
-<tt class="descname">image_points</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.calibration.StereoCalibrator.image_points" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of found corner coordinates from calibration images for left
-and right camera, respectively</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.calibration.StereoCalibrator.add_corners">
-<tt class="descname">add_corners</tt><big>(</big><em>image_pair</em>, <em>show_results=False</em><big>)</big><a class="reference internal" href="_modules/stereovision/calibration.html#StereoCalibrator.add_corners"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.calibration.StereoCalibrator.add_corners" title="Permalink to this definition">¶</a></dt>
-<dd><p>Record chessboard corners found in an image pair.</p>
-<p>The image pair should be an iterable composed of two CvMats ordered
-(left, right).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.calibration.StereoCalibrator.calibrate_cameras">
-<tt class="descname">calibrate_cameras</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/stereovision/calibration.html#StereoCalibrator.calibrate_cameras"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.calibration.StereoCalibrator.calibrate_cameras" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calibrate cameras based on found chessboard corners.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.calibration.StereoCalibrator.check_calibration">
-<tt class="descname">check_calibration</tt><big>(</big><em>calibration</em><big>)</big><a class="reference internal" href="_modules/stereovision/calibration.html#StereoCalibrator.check_calibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.calibration.StereoCalibrator.check_calibration" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check calibration quality by computing average reprojection error.</p>
-<p>First, undistort detected points and compute epilines for each side.
-Then compute the error between the computed epipolar lines and the
-position of the points detected on the other side for each point and
-return the average error.</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="camera-calibration">
+<h2>Camera calibration<a class="headerlink" href="#camera-calibration" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-stereovision.blockmatchers">
-<span id="block-matchers"></span><h2>Block matchers<a class="headerlink" href="#module-stereovision.blockmatchers" title="Permalink to this headline">¶</a></h2>
-<p>Wrapper classes for block matching algorithms.</p>
-<p>Classes:</p>
-<blockquote>
-<div><ul>
-<li><p class="first"><tt class="docutils literal"><span class="pre">BlockMatcher</span></tt> - Abstract class that implements interface for subclasses</p>
-<blockquote>
-<div><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">StereoBM</span></tt> - StereoBM block matching algorithm</li>
-<li><tt class="docutils literal"><span class="pre">StereoSGBM</span></tt> - StereoSGBM block matching algorithm</li>
-</ul>
-</div></blockquote>
-</li>
-</ul>
-</div></blockquote>
-<img src="_images/classes_blockmatchers.svg" /><dl class="class">
-<dt id="stereovision.blockmatchers.BlockMatcher">
-<em class="property">class </em><tt class="descclassname">stereovision.blockmatchers.</tt><tt class="descname">BlockMatcher</tt><big>(</big><em>settings=None</em><big>)</big><a class="reference internal" href="_modules/stereovision/blockmatchers.html#BlockMatcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.BlockMatcher" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Block matching algorithms.</p>
-<p>This abstract class exposes the interface for subclasses that wrap OpenCV&#8217;s
-block matching algorithms. Doing so makes it possible to use them in the
-strategy pattern. In this library, that happens in <tt class="docutils literal"><span class="pre">CalibratedPair</span></tt>, which
-uses a unified interface to interact with any kind of block matcher, and
-with <tt class="docutils literal"><span class="pre">BMTuners</span></tt>, which can discover the <tt class="docutils literal"><span class="pre">BlockMatcher's</span></tt> parameters and
-allow the user to adjust them online.</p>
-<p>Each <tt class="docutils literal"><span class="pre">BlockMatcher</span></tt> protects its block matcher&#8217;s parameters by using
-getters and setters. It exposes its settable parameter and their maximum
-values, if they exist, in the dictionary <tt class="docutils literal"><span class="pre">parameter_maxima</span></tt>.</p>
-<p><tt class="docutils literal"><span class="pre">load_settings</span></tt>, <tt class="docutils literal"><span class="pre">save_settings</span></tt> and <tt class="docutils literal"><span class="pre">get_3d</span></tt> are implemented on
-<tt class="docutils literal"><span class="pre">BlockMatcher</span></tt> itself, as these are independent of the block matching
-algorithm. Subclasses are expected to implement <tt class="docutils literal"><span class="pre">_replace_bm</span></tt> and
-<tt class="docutils literal"><span class="pre">get_disparity</span></tt>, as well as the getters and setters. They are also
-expected to call <tt class="docutils literal"><span class="pre">BlockMatcher</span></tt>&#8216;s <tt class="docutils literal"><span class="pre">__init__</span></tt> after setting their own
-private variables.</p>
-<p>Set block matcher parameters and load from file if necessary.</p>
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.BlockMatcher.parameter_maxima">
-<tt class="descname">parameter_maxima</tt><em class="property"> = {}</em><a class="headerlink" href="#stereovision.blockmatchers.BlockMatcher.parameter_maxima" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dictionary of parameter names associated with their maximum values</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.blockmatchers.BlockMatcher.load_settings">
-<tt class="descname">load_settings</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="_modules/stereovision/blockmatchers.html#BlockMatcher.load_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.BlockMatcher.load_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load settings from file</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.blockmatchers.BlockMatcher.save_settings">
-<tt class="descname">save_settings</tt><big>(</big><em>settings_file</em><big>)</big><a class="reference internal" href="_modules/stereovision/blockmatchers.html#BlockMatcher.save_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.BlockMatcher.save_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save block matcher settings to a file object</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="stereovision.blockmatchers.BlockMatcher.get_3d">
-<em class="property">classmethod </em><tt class="descname">get_3d</tt><big>(</big><em>disparity</em>, <em>disparity_to_depth_map</em><big>)</big><a class="reference internal" href="_modules/stereovision/blockmatchers.html#BlockMatcher.get_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.BlockMatcher.get_3d" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute point cloud.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.blockmatchers.BlockMatcher.get_disparity">
-<tt class="descname">get_disparity</tt><big>(</big><em>image_pair</em><big>)</big><a class="reference internal" href="_modules/stereovision/blockmatchers.html#BlockMatcher.get_disparity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.BlockMatcher.get_disparity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute disparity map from image pair.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="stereovision.blockmatchers.StereoBM">
-<em class="property">class </em><tt class="descclassname">stereovision.blockmatchers.</tt><tt class="descname">StereoBM</tt><big>(</big><em>stereo_bm_preset=0L</em>, <em>search_range=80</em>, <em>window_size=21</em>, <em>settings=None</em><big>)</big><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoBM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoBM" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.blockmatchers.BlockMatcher" title="stereovision.blockmatchers.BlockMatcher"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.blockmatchers.BlockMatcher</span></tt></a></p>
-<p>A stereo block matching <tt class="docutils literal"><span class="pre">BlockMatcher</span></tt>.</p>
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoBM.stereo_bm_preset">
-<tt class="descname">stereo_bm_preset</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoBM.stereo_bm_preset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoBM.stereo_bm_preset" title="Permalink to this definition">¶</a></dt>
-<dd><p>OpenCV camera type for <tt class="docutils literal"><span class="pre">_block_matcher</span></tt></p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoBM.search_range">
-<tt class="descname">search_range</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoBM.search_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoBM.search_range" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of disparities for <tt class="docutils literal"><span class="pre">_block_matcher</span></tt></p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoBM.window_size">
-<tt class="descname">window_size</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoBM.window_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoBM.window_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Search window size for <tt class="docutils literal"><span class="pre">_block_matcher</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.blockmatchers.StereoBM.get_disparity">
-<tt class="descname">get_disparity</tt><big>(</big><em>pair</em><big>)</big><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoBM.get_disparity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoBM.get_disparity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute disparity from image pair (left, right).</p>
-<p>First, convert images to grayscale if needed. Then pass to the
-<tt class="docutils literal"><span class="pre">_block_matcher</span></tt> for stereo matching.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="stereovision.blockmatchers.StereoBM.get_3d">
-<em class="property">classmethod </em><tt class="descname">get_3d</tt><big>(</big><em>disparity</em>, <em>disparity_to_depth_map</em><big>)</big><a class="headerlink" href="#stereovision.blockmatchers.StereoBM.get_3d" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute point cloud.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.blockmatchers.StereoBM.load_settings">
-<tt class="descname">load_settings</tt><big>(</big><em>settings</em><big>)</big><a class="headerlink" href="#stereovision.blockmatchers.StereoBM.load_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load settings from file</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.blockmatchers.StereoBM.save_settings">
-<tt class="descname">save_settings</tt><big>(</big><em>settings_file</em><big>)</big><a class="headerlink" href="#stereovision.blockmatchers.StereoBM.save_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save block matcher settings to a file object</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="stereovision.blockmatchers.StereoSGBM">
-<em class="property">class </em><tt class="descclassname">stereovision.blockmatchers.</tt><tt class="descname">StereoSGBM</tt><big>(</big><em>min_disparity=16</em>, <em>num_disp=96</em>, <em>sad_window_size=3</em>, <em>uniqueness=10</em>, <em>speckle_window_size=100</em>, <em>speckle_range=32</em>, <em>p1=216</em>, <em>p2=864</em>, <em>max_disparity=1</em>, <em>full_dp=False</em>, <em>settings=None</em><big>)</big><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.blockmatchers.BlockMatcher" title="stereovision.blockmatchers.BlockMatcher"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.blockmatchers.BlockMatcher</span></tt></a></p>
-<p>A semi-global block matcher.</p>
-<p>Instantiate private variables and call superclass initializer.</p>
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoSGBM.minDisparity">
-<tt class="descname">minDisparity</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM.minDisparity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.minDisparity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return private <tt class="docutils literal"><span class="pre">_min_disparity</span></tt> value.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoSGBM.numDisparities">
-<tt class="descname">numDisparities</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM.numDisparities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.numDisparities" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return private <tt class="docutils literal"><span class="pre">_num_disp</span></tt> value.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoSGBM.SADWindowSize">
-<tt class="descname">SADWindowSize</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM.SADWindowSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.SADWindowSize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return private <tt class="docutils literal"><span class="pre">_sad_window_size</span></tt> value.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoSGBM.uniquenessRatio">
-<tt class="descname">uniquenessRatio</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM.uniquenessRatio"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.uniquenessRatio" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return private <tt class="docutils literal"><span class="pre">_uniqueness</span></tt> value.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoSGBM.speckleWindowSize">
-<tt class="descname">speckleWindowSize</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM.speckleWindowSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.speckleWindowSize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return private <tt class="docutils literal"><span class="pre">_speckle_window_size</span></tt> value.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoSGBM.speckleRange">
-<tt class="descname">speckleRange</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM.speckleRange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.speckleRange" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return private <tt class="docutils literal"><span class="pre">_speckle_range</span></tt> value.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoSGBM.disp12MaxDiff">
-<tt class="descname">disp12MaxDiff</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM.disp12MaxDiff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.disp12MaxDiff" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return private <tt class="docutils literal"><span class="pre">_max_disparity</span></tt> value.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoSGBM.P1">
-<tt class="descname">P1</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM.P1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.P1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return private <tt class="docutils literal"><span class="pre">_P1</span></tt> value.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoSGBM.P2">
-<tt class="descname">P2</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM.P2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.P2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return private <tt class="docutils literal"><span class="pre">_P2</span></tt> value.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="stereovision.blockmatchers.StereoSGBM.get_3d">
-<em class="property">classmethod </em><tt class="descname">get_3d</tt><big>(</big><em>disparity</em>, <em>disparity_to_depth_map</em><big>)</big><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.get_3d" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute point cloud.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.blockmatchers.StereoSGBM.load_settings">
-<tt class="descname">load_settings</tt><big>(</big><em>settings</em><big>)</big><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.load_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load settings from file</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.blockmatchers.StereoSGBM.save_settings">
-<tt class="descname">save_settings</tt><big>(</big><em>settings_file</em><big>)</big><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.save_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save block matcher settings to a file object</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.blockmatchers.StereoSGBM.fullDP">
-<tt class="descname">fullDP</tt><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM.fullDP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.fullDP" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return private <tt class="docutils literal"><span class="pre">_full_dp</span></tt> value.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.blockmatchers.StereoSGBM.get_disparity">
-<tt class="descname">get_disparity</tt><big>(</big><em>pair</em><big>)</big><a class="reference internal" href="_modules/stereovision/blockmatchers.html#StereoSGBM.get_disparity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.blockmatchers.StereoSGBM.get_disparity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute disparity from image pair (left, right).</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="block-matchers">
+<h2>Block matchers<a class="headerlink" href="#block-matchers" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-stereovision.point_cloud">
 <span id="point-clouds"></span><h2>Point clouds<a class="headerlink" href="#module-stereovision.point_cloud" title="Permalink to this headline">¶</a></h2>
@@ -634,175 +83,42 @@ private variables.</p>
 <p>Classes:</p>
 <blockquote>
 <div><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">PointCloud</span></tt> - Point cloud with RGB colors</li>
+<li><code class="docutils literal"><span class="pre">PointCloud</span></code> - Point cloud with RGB colors</li>
 </ul>
 </div></blockquote>
 <img src="_images/classes_point_cloud.svg" /><dl class="class">
 <dt id="stereovision.point_cloud.PointCloud">
-<em class="property">class </em><tt class="descclassname">stereovision.point_cloud.</tt><tt class="descname">PointCloud</tt><big>(</big><em>coordinates</em>, <em>colors</em><big>)</big><a class="reference internal" href="_modules/stereovision/point_cloud.html#PointCloud"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.point_cloud.PointCloud" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><code class="descclassname">stereovision.point_cloud.</code><code class="descname">PointCloud</code><span class="sig-paren">(</span><em>coordinates</em>, <em>colors</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/stereovision/point_cloud.html#PointCloud"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.point_cloud.PointCloud" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>3D point cloud generated from a stereo image pair.</p>
 <p>Initialize point cloud with given coordinates and associated colors.</p>
-<p><tt class="docutils literal"><span class="pre">coordinates</span></tt> and <tt class="docutils literal"><span class="pre">colors</span></tt> should be numpy arrays of the same
-length, in which <tt class="docutils literal"><span class="pre">coordinates</span></tt> is made of three-dimensional point
-positions (X, Y, Z) and <tt class="docutils literal"><span class="pre">colors</span></tt> is made of three-dimensional spectral
+<p><code class="docutils literal"><span class="pre">coordinates</span></code> and <code class="docutils literal"><span class="pre">colors</span></code> should be numpy arrays of the same
+length, in which <code class="docutils literal"><span class="pre">coordinates</span></code> is made of three-dimensional point
+positions (X, Y, Z) and <code class="docutils literal"><span class="pre">colors</span></code> is made of three-dimensional spectral
 data, e.g. (R, G, B).</p>
 <dl class="attribute">
 <dt id="stereovision.point_cloud.PointCloud.ply_header">
-<tt class="descname">ply_header</tt><em class="property"> = 'ply\nformat ascii 1.0\nelement vertex {vertex_count}\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n'</em><a class="headerlink" href="#stereovision.point_cloud.PointCloud.ply_header" title="Permalink to this definition">¶</a></dt>
+<code class="descname">ply_header</code><em class="property"> = 'ply\nformat ascii 1.0\nelement vertex {vertex_count}\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n'</em><a class="headerlink" href="#stereovision.point_cloud.PointCloud.ply_header" title="Permalink to this definition">¶</a></dt>
 <dd><p>Header for exporting point cloud to PLY</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="stereovision.point_cloud.PointCloud.write_ply">
-<tt class="descname">write_ply</tt><big>(</big><em>output_file</em><big>)</big><a class="reference internal" href="_modules/stereovision/point_cloud.html#PointCloud.write_ply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.point_cloud.PointCloud.write_ply" title="Permalink to this definition">¶</a></dt>
-<dd><p>Export <tt class="docutils literal"><span class="pre">PointCloud</span></tt> to PLY file for viewing in MeshLab.</p>
+<code class="descname">write_ply</code><span class="sig-paren">(</span><em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/stereovision/point_cloud.html#PointCloud.write_ply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.point_cloud.PointCloud.write_ply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export <code class="docutils literal"><span class="pre">PointCloud</span></code> to PLY file for viewing in MeshLab.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="stereovision.point_cloud.PointCloud.filter_infinity">
-<tt class="descname">filter_infinity</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/stereovision/point_cloud.html#PointCloud.filter_infinity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.point_cloud.PointCloud.filter_infinity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Filter infinite distances from <tt class="docutils literal"><span class="pre">PointCloud.</span></tt></p>
+<code class="descname">filter_infinity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/stereovision/point_cloud.html#PointCloud.filter_infinity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.point_cloud.PointCloud.filter_infinity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter infinite distances from <code class="docutils literal"><span class="pre">PointCloud.</span></code></p>
 </dd></dl>
 
 </dd></dl>
 
 </div>
-<div class="section" id="module-stereovision.ui_utils">
-<span id="user-interface-utilities"></span><h2>User interface utilities<a class="headerlink" href="#module-stereovision.ui_utils" title="Permalink to this headline">¶</a></h2>
-<p>Utilities for easing user interaction with the <tt class="docutils literal"><span class="pre">stereovision</span></tt> package.</p>
-<p>Variables:</p>
-<blockquote>
-<div><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">CHESSBOARD_ARGUMENTS</span></tt> - <tt class="docutils literal"><span class="pre">argparse.ArgumentParser</span></tt> for working with
-chessboards</li>
-<li><tt class="docutils literal"><span class="pre">STEREO_BM_FLAG</span></tt> - <tt class="docutils literal"><span class="pre">argparse.ArgumentParser</span></tt> for using StereoBM</li>
-</ul>
-</div></blockquote>
-<p>Functions:</p>
-<blockquote>
-<div><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">find_files</span></tt> - Discover stereo images in directory</li>
-<li><tt class="docutils literal"><span class="pre">calibrate_folder</span></tt> - Calibrate chessboard images discoverd in a folder</li>
-</ul>
-</div></blockquote>
-<p>Classes:</p>
-<blockquote>
-<div><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">BMTuner</span></tt> - Tune block matching algorithm to camera pair</li>
-</ul>
-</div></blockquote>
-<img src="_images/classes_ui_utils.svg" /><dl class="data">
-<dt id="stereovision.ui_utils.CHESSBOARD_ARGUMENTS">
-<tt class="descclassname">stereovision.ui_utils.</tt><tt class="descname">CHESSBOARD_ARGUMENTS</tt><em class="property"> = ArgumentParser(prog='sphinx-build', usage=None, description=None, version=None, formatter_class=&lt;class 'argparse.HelpFormatter'&gt;, conflict_handler='error', add_help=False)</em><a class="headerlink" href="#stereovision.ui_utils.CHESSBOARD_ARGUMENTS" title="Permalink to this definition">¶</a></dt>
-<dd><p>Command line arguments for collecting information about chessboards</p>
-</dd></dl>
-
-<dl class="data">
-<dt id="stereovision.ui_utils.STEREO_BM_FLAG">
-<tt class="descclassname">stereovision.ui_utils.</tt><tt class="descname">STEREO_BM_FLAG</tt><em class="property"> = ArgumentParser(prog='sphinx-build', usage=None, description=None, version=None, formatter_class=&lt;class 'argparse.HelpFormatter'&gt;, conflict_handler='error', add_help=False)</em><a class="headerlink" href="#stereovision.ui_utils.STEREO_BM_FLAG" title="Permalink to this definition">¶</a></dt>
-<dd><p>Command line arguments for using StereoBM rather than StereoSGBM</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="stereovision.ui_utils.find_files">
-<tt class="descclassname">stereovision.ui_utils.</tt><tt class="descname">find_files</tt><big>(</big><em>folder</em><big>)</big><a class="reference internal" href="_modules/stereovision/ui_utils.html#find_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.ui_utils.find_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Discover stereo photos and return them as a pairwise sorted list.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="stereovision.ui_utils.calibrate_folder">
-<tt class="descclassname">stereovision.ui_utils.</tt><tt class="descname">calibrate_folder</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/stereovision/ui_utils.html#calibrate_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.ui_utils.calibrate_folder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calibrate camera based on chessboard images, write results to output folder.</p>
-<p>All images are read from disk. Chessboard points are found and used to
-calibrate the stereo pair. Finally, the calibration is written to the folder
-specified in <tt class="docutils literal"><span class="pre">args</span></tt>.</p>
-<dl class="docutils">
-<dt><tt class="docutils literal"><span class="pre">args</span></tt> needs to contain the following fields:</dt>
-<dd>input_files: List of paths to input files
-rows: Number of rows in chessboard
-columns: Number of columns in chessboard
-square_size: Size of chessboard squares in cm
-output_folder: Folder to write calibration to</dd>
-</dl>
-</dd></dl>
-
-<dl class="class">
-<dt id="stereovision.ui_utils.BMTuner">
-<em class="property">class </em><tt class="descclassname">stereovision.ui_utils.</tt><tt class="descname">BMTuner</tt><big>(</big><em>block_matcher</em>, <em>calibration</em>, <em>image_pair</em><big>)</big><a class="reference internal" href="_modules/stereovision/ui_utils.html#BMTuner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.ui_utils.BMTuner" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>A class for tuning Stereo BM settings.</p>
-<p>Display a normalized disparity picture from two pictures captured with a
-<tt class="docutils literal"><span class="pre">CalibratedPair</span></tt> and allow the user to manually tune the settings for the
-<tt class="docutils literal"><span class="pre">BlockMatcher</span></tt>.</p>
-<p>The settable parameters are intelligently read from the <tt class="docutils literal"><span class="pre">BlockMatcher</span></tt>,
-relying on the <tt class="docutils literal"><span class="pre">BlockMatcher</span></tt> exposing them as <tt class="docutils literal"><span class="pre">parameter_maxima</span></tt>.</p>
-<p>Initialize tuner window and tune given pair.</p>
-<p><tt class="docutils literal"><span class="pre">block_matcher</span></tt> is a <tt class="docutils literal"><span class="pre">BlockMatcher</span></tt>, <tt class="docutils literal"><span class="pre">calibration</span></tt> is a
-<tt class="docutils literal"><span class="pre">StereoCalibration</span></tt> and <tt class="docutils literal"><span class="pre">image_pair</span></tt> is a rectified image pair.</p>
-<dl class="attribute">
-<dt id="stereovision.ui_utils.BMTuner.window_name">
-<tt class="descname">window_name</tt><em class="property"> = 'BM Tuner'</em><a class="headerlink" href="#stereovision.ui_utils.BMTuner.window_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Window to show results in</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.ui_utils.BMTuner.calibration">
-<tt class="descname">calibration</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.ui_utils.BMTuner.calibration" title="Permalink to this definition">¶</a></dt>
-<dd><p>Stereo calibration to find Stereo BM settings for</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.ui_utils.BMTuner.pair">
-<tt class="descname">pair</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.ui_utils.BMTuner.pair" title="Permalink to this definition">¶</a></dt>
-<dd><p>(left, right) image pair to find disparity between</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.ui_utils.BMTuner.block_matcher">
-<tt class="descname">block_matcher</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.ui_utils.BMTuner.block_matcher" title="Permalink to this definition">¶</a></dt>
-<dd><p>Block matcher to be tuned</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.ui_utils.BMTuner.shortest_dimension">
-<tt class="descname">shortest_dimension</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.ui_utils.BMTuner.shortest_dimension" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shortest dimension of image</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="stereovision.ui_utils.BMTuner.bm_settings">
-<tt class="descname">bm_settings</tt><em class="property"> = None</em><a class="headerlink" href="#stereovision.ui_utils.BMTuner.bm_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Settings chosen for <tt class="docutils literal"><span class="pre">BlockMatcher</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.ui_utils.BMTuner.update_disparity_map">
-<tt class="descname">update_disparity_map</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/stereovision/ui_utils.html#BMTuner.update_disparity_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.ui_utils.BMTuner.update_disparity_map" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update disparity map in GUI.</p>
-<p>The disparity image is normalized to the range 0-255 and then divided by
-255, because OpenCV multiplies it by 255 when displaying. This is
-because the pixels are stored as floating points.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.ui_utils.BMTuner.tune_pair">
-<tt class="descname">tune_pair</tt><big>(</big><em>pair</em><big>)</big><a class="reference internal" href="_modules/stereovision/ui_utils.html#BMTuner.tune_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.ui_utils.BMTuner.tune_pair" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tune a pair of images.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="stereovision.ui_utils.BMTuner.report_settings">
-<tt class="descname">report_settings</tt><big>(</big><em>parameter</em><big>)</big><a class="reference internal" href="_modules/stereovision/ui_utils.html#BMTuner.report_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.ui_utils.BMTuner.report_settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Report chosen settings for <tt class="docutils literal"><span class="pre">parameter</span></tt> in <tt class="docutils literal"><span class="pre">block_matcher</span></tt>.</p>
-<p><tt class="docutils literal"><span class="pre">bm_settings</span></tt> is updated to include the latest state before work is
-begun. This state is removed at the end so that the method has no side
-effects. All settings are reported except for the first one on record,
-which is <tt class="docutils literal"><span class="pre">block_matcher</span></tt>&#8216;s default setting.</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="user-interface-utilities">
+<h2>User interface utilities<a class="headerlink" href="#user-interface-utilities" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-stereovision.exceptions">
 <span id="exceptions"></span><h2>Exceptions<a class="headerlink" href="#module-stereovision.exceptions" title="Permalink to this headline">¶</a></h2>
@@ -810,30 +126,30 @@ which is <tt class="docutils literal"><span class="pre">block_matcher</span></tt
 <p>Classes:</p>
 <blockquote>
 <div><ul>
-<li><p class="first"><tt class="docutils literal"><span class="pre">ChessboardNotFoundError</span></tt></p>
+<li><p class="first"><code class="docutils literal"><span class="pre">ChessboardNotFoundError</span></code></p>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">BadBlockMatcherArgumentError</span></tt></p>
+<li><p class="first"><code class="docutils literal"><span class="pre">BadBlockMatcherArgumentError</span></code></p>
 <blockquote>
 <div><ul>
-<li><p class="first"><tt class="docutils literal"><span class="pre">StereoBMError</span></tt></p>
+<li><p class="first"><code class="docutils literal"><span class="pre">StereoBMError</span></code></p>
 <blockquote>
 <div><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">InvalidBMPresetError</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">InvalidSearchRangeError</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">InvalidWindowSizeError</span></tt></li>
+<li><code class="docutils literal"><span class="pre">InvalidBMPresetError</span></code></li>
+<li><code class="docutils literal"><span class="pre">InvalidSearchRangeError</span></code></li>
+<li><code class="docutils literal"><span class="pre">InvalidWindowSizeError</span></code></li>
 </ul>
 </div></blockquote>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">StereoSGBMError</span></tt></p>
+<li><p class="first"><code class="docutils literal"><span class="pre">StereoSGBMError</span></code></p>
 <blockquote>
 <div><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">InvalidNumDisparitiesError</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">InvalidSADWindowSizeError</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">InvalidFirstDisparityChangePenaltyError</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">InvalidSecondDisparityChangePenaltyError</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">InvalidUniquenessRatioError</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">InvalidSpeckleWindowSizeError</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">InvalidSpeckleRangeError</span></tt></li>
+<li><code class="docutils literal"><span class="pre">InvalidNumDisparitiesError</span></code></li>
+<li><code class="docutils literal"><span class="pre">InvalidSADWindowSizeError</span></code></li>
+<li><code class="docutils literal"><span class="pre">InvalidFirstDisparityChangePenaltyError</span></code></li>
+<li><code class="docutils literal"><span class="pre">InvalidSecondDisparityChangePenaltyError</span></code></li>
+<li><code class="docutils literal"><span class="pre">InvalidUniquenessRatioError</span></code></li>
+<li><code class="docutils literal"><span class="pre">InvalidSpeckleWindowSizeError</span></code></li>
+<li><code class="docutils literal"><span class="pre">InvalidSpeckleRangeError</span></code></li>
 </ul>
 </div></blockquote>
 </li>
@@ -845,100 +161,198 @@ which is <tt class="docutils literal"><span class="pre">block_matcher</span></tt
 <a class="reference internal image-reference" href="_images/classes_exceptions.svg"><img src="_images/classes_exceptions.svg" width="100%" /></a>
 <dl class="exception">
 <dt id="stereovision.exceptions.ChessboardNotFoundError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">ChessboardNotFoundError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#ChessboardNotFoundError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.ChessboardNotFoundError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">ChessboardNotFoundError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#ChessboardNotFoundError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.ChessboardNotFoundError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
 <p>No chessboard could be found in searched image.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.ChessboardNotFoundError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.ChessboardNotFoundError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.BadBlockMatcherArgumentError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">BadBlockMatcherArgumentError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#BadBlockMatcherArgumentError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.BadBlockMatcherArgumentError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
-<p>Bad argument supplied for a <tt class="docutils literal"><span class="pre">BlockMatcher</span></tt>.</p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">BadBlockMatcherArgumentError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#BadBlockMatcherArgumentError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.BadBlockMatcherArgumentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
+<p>Bad argument supplied for a <code class="docutils literal"><span class="pre">BlockMatcher</span></code>.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.BadBlockMatcherArgumentError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.BadBlockMatcherArgumentError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.StereoBMError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">StereoBMError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#StereoBMError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.StereoBMError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.BadBlockMatcherArgumentError" title="stereovision.exceptions.BadBlockMatcherArgumentError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.BadBlockMatcherArgumentError</span></tt></a></p>
-<p>Bad argument supplied for a <tt class="docutils literal"><span class="pre">StereoBM</span></tt>.</p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">StereoBMError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#StereoBMError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.StereoBMError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.BadBlockMatcherArgumentError" title="stereovision.exceptions.BadBlockMatcherArgumentError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.BadBlockMatcherArgumentError</span></code></a></p>
+<p>Bad argument supplied for a <code class="docutils literal"><span class="pre">StereoBM</span></code>.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.StereoBMError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.StereoBMError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.StereoSGBMError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">StereoSGBMError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#StereoSGBMError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.StereoSGBMError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.BadBlockMatcherArgumentError" title="stereovision.exceptions.BadBlockMatcherArgumentError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.BadBlockMatcherArgumentError</span></tt></a></p>
-<p>Bad argument supplied for a <tt class="docutils literal"><span class="pre">StereoSGBM</span></tt>.</p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">StereoSGBMError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#StereoSGBMError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.StereoSGBMError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.BadBlockMatcherArgumentError" title="stereovision.exceptions.BadBlockMatcherArgumentError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.BadBlockMatcherArgumentError</span></code></a></p>
+<p>Bad argument supplied for a <code class="docutils literal"><span class="pre">StereoSGBM</span></code>.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.StereoSGBMError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.StereoSGBMError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.InvalidBMPresetError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">InvalidBMPresetError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidBMPresetError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidBMPresetError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoBMError" title="stereovision.exceptions.StereoBMError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoBMError</span></tt></a></p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">InvalidBMPresetError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidBMPresetError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidBMPresetError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoBMError" title="stereovision.exceptions.StereoBMError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoBMError</span></code></a></p>
 <p>Invalid BM preset.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.InvalidBMPresetError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.InvalidBMPresetError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.InvalidSearchRangeError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">InvalidSearchRangeError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidSearchRangeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidSearchRangeError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoBMError" title="stereovision.exceptions.StereoBMError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoBMError</span></tt></a></p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">InvalidSearchRangeError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidSearchRangeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidSearchRangeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoBMError" title="stereovision.exceptions.StereoBMError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoBMError</span></code></a></p>
 <p>Invalid search range.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.InvalidSearchRangeError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.InvalidSearchRangeError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.InvalidWindowSizeError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">InvalidWindowSizeError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidWindowSizeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidWindowSizeError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoBMError" title="stereovision.exceptions.StereoBMError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoBMError</span></tt></a></p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">InvalidWindowSizeError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidWindowSizeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidWindowSizeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoBMError" title="stereovision.exceptions.StereoBMError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoBMError</span></code></a></p>
 <p>Invalid search range.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.InvalidWindowSizeError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.InvalidWindowSizeError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.InvalidNumDisparitiesError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">InvalidNumDisparitiesError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidNumDisparitiesError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidNumDisparitiesError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></tt></a></p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">InvalidNumDisparitiesError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidNumDisparitiesError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidNumDisparitiesError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></code></a></p>
 <p>Invalid number of disparities.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.InvalidNumDisparitiesError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.InvalidNumDisparitiesError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.InvalidSADWindowSizeError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">InvalidSADWindowSizeError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidSADWindowSizeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidSADWindowSizeError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></tt></a></p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">InvalidSADWindowSizeError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidSADWindowSizeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidSADWindowSizeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></code></a></p>
 <p>Invalid search window size.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.InvalidSADWindowSizeError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.InvalidSADWindowSizeError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.InvalidFirstDisparityChangePenaltyError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">InvalidFirstDisparityChangePenaltyError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidFirstDisparityChangePenaltyError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidFirstDisparityChangePenaltyError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></tt></a></p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">InvalidFirstDisparityChangePenaltyError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidFirstDisparityChangePenaltyError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidFirstDisparityChangePenaltyError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></code></a></p>
 <p>Invalid first disparity change penalty.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.InvalidFirstDisparityChangePenaltyError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.InvalidFirstDisparityChangePenaltyError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.InvalidSecondDisparityChangePenaltyError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">InvalidSecondDisparityChangePenaltyError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidSecondDisparityChangePenaltyError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidSecondDisparityChangePenaltyError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></tt></a></p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">InvalidSecondDisparityChangePenaltyError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidSecondDisparityChangePenaltyError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidSecondDisparityChangePenaltyError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></code></a></p>
 <p>Invalid second disparity change penalty.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.InvalidSecondDisparityChangePenaltyError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.InvalidSecondDisparityChangePenaltyError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.InvalidUniquenessRatioError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">InvalidUniquenessRatioError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidUniquenessRatioError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidUniquenessRatioError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></tt></a></p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">InvalidUniquenessRatioError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidUniquenessRatioError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidUniquenessRatioError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></code></a></p>
 <p>Invalid uniqueness ratio.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.InvalidUniquenessRatioError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.InvalidUniquenessRatioError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.InvalidSpeckleWindowSizeError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">InvalidSpeckleWindowSizeError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidSpeckleWindowSizeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidSpeckleWindowSizeError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></tt></a></p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">InvalidSpeckleWindowSizeError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidSpeckleWindowSizeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidSpeckleWindowSizeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></code></a></p>
 <p>Invalid speckle window size.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.InvalidSpeckleWindowSizeError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.InvalidSpeckleWindowSizeError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
 <dt id="stereovision.exceptions.InvalidSpeckleRangeError">
-<em class="property">exception </em><tt class="descclassname">stereovision.exceptions.</tt><tt class="descname">InvalidSpeckleRangeError</tt><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidSpeckleRangeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidSpeckleRangeError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><tt class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></tt></a></p>
+<em class="property">exception </em><code class="descclassname">stereovision.exceptions.</code><code class="descname">InvalidSpeckleRangeError</code><a class="reference internal" href="_modules/stereovision/exceptions.html#InvalidSpeckleRangeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#stereovision.exceptions.InvalidSpeckleRangeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#stereovision.exceptions.StereoSGBMError" title="stereovision.exceptions.StereoSGBMError"><code class="xref py py-class docutils literal"><span class="pre">stereovision.exceptions.StereoSGBMError</span></code></a></p>
 <p>Invalid speckle range.</p>
+<dl class="method">
+<dt id="stereovision.exceptions.InvalidSpeckleRangeError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#stereovision.exceptions.InvalidSpeckleRangeError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) &#8211;
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -948,16 +362,16 @@ which is <tt class="docutils literal"><span class="pre">block_matcher</span></tt
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">StereoVision source documentation</a><ul>
-<li><a class="reference internal" href="#module-stereovision.stereo_cameras">Camera interfaces</a></li>
-<li><a class="reference internal" href="#module-stereovision.calibration">Camera calibration</a></li>
-<li><a class="reference internal" href="#module-stereovision.blockmatchers">Block matchers</a></li>
+<li><a class="reference internal" href="#camera-interfaces">Camera interfaces</a></li>
+<li><a class="reference internal" href="#camera-calibration">Camera calibration</a></li>
+<li><a class="reference internal" href="#block-matchers">Block matchers</a></li>
 <li><a class="reference internal" href="#module-stereovision.point_cloud">Point clouds</a></li>
-<li><a class="reference internal" href="#module-stereovision.ui_utils">User interface utilities</a></li>
+<li><a class="reference internal" href="#user-interface-utilities">User interface utilities</a></li>
 <li><a class="reference internal" href="#module-stereovision.exceptions">Exceptions</a></li>
 </ul>
 </li>
@@ -969,12 +383,14 @@ which is <tt class="docutils literal"><span class="pre">block_matcher</span></tt
   <h4>Next topic</h4>
   <p class="topless"><a href="changes.html"
                         title="next chapter">Changes</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/development.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/development.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -991,7 +407,7 @@ which is <tt class="docutils literal"><span class="pre">block_matcher</span></tt
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -1006,12 +422,12 @@ which is <tt class="docutils literal"><span class="pre">block_matcher</span></tt
         <li class="right" >
           <a href="usage.html" title="Using StereoVision"
              >previous</a> |</li>
-        <li><a href="index.html">StereoVision 1.0.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">StereoVision 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Daniel Lee.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
     </div>
   </body>
 </html>
