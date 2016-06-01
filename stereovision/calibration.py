@@ -222,15 +222,34 @@ class StereoCalibrator(object):
         flags = (cv2.CALIB_FIX_ASPECT_RATIO + cv2.CALIB_ZERO_TANGENT_DIST +
                  cv2.CALIB_SAME_FOCAL_LENGTH)
         calib = StereoCalibration()
-        (calib.cam_mats["left"], calib.dist_coefs["left"],
+        calib.cam_mats["left"] = np.zeros((3, 3), np.float32)
+        calib.cam_mats["right"] = np.zeros((3, 3), np.float32)
+        calib.dist_coefs["left"] = np.zeros((1, 5), np.float32)
+        calib.dist_coefs["right"] = np.zeros((1, 5), np.float32)
+        calib.rot_mat = np.zeros((3, 3), np.float32)
+        calib.trans_vec = np.zeros((1, 4), np.float32)
+        calib.e_mat = np.zeros((3, 3), np.float32)
+        (calib.rms_l, calib.cam_mats["left"], calib.dist_coefs["left"], _, _) = \
+            cv2.calibrateCamera(self.object_points, self.image_points["left"], (self.image_size[0], self.image_size[1]),
+                                calib.cam_mats["left"], calib.dist_coefs["left"],
+                                flags=0)
+        (calib.rms_l, calib.cam_mats["right"], calib.dist_coefs["right"], _, _) = \
+            cv2.calibrateCamera(self.object_points, self.image_points["right"],
+                                (self.image_size[0], self.image_size[1]),
+                                calib.cam_mats["right"], calib.dist_coefs["right"],
+                                flags=0)
+        res = cv2.stereoCalibrate(self.object_points,
+                            self.image_points["left"],
+                            self.image_points["right"],
+                            calib.cam_mats["left"], calib.dist_coefs["left"],
+                            calib.cam_mats["right"], calib.dist_coefs["right"],
+                            self.image_size, flags=flags);
+
+        (calib.rmsStereo,
+         calib.cam_mats["left"], calib.dist_coefs["left"],
          calib.cam_mats["right"], calib.dist_coefs["right"],
-         calib.rot_mat, calib.trans_vec, calib.e_mat,
-         calib.f_mat) = cv2.stereoCalibrate(self.object_points,
-                                            self.image_points["left"],
-                                            self.image_points["right"],
-                                            self.image_size,
-                                            criteria=criteria,
-                                            flags=flags)[1:]
+         calib.rot_mat, calib.trans_vec, calib.e_mat, calib.f_mat) = res
+
         (calib.rect_trans["left"], calib.rect_trans["right"],
          calib.proj_mats["left"], calib.proj_mats["right"],
          calib.disp_to_depth_mat, calib.valid_boxes["left"],
