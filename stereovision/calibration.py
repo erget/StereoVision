@@ -33,7 +33,6 @@ import cv2
 import numpy as np
 from stereovision.exceptions import ChessboardNotFoundError
 
-
 class StereoCalibration(object):
 
     """
@@ -149,6 +148,7 @@ class StereoCalibrator(object):
     def _get_corners(self, image):
         """Find subpixel chessboard corners in image."""
         temp = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        
         ret, corners = cv2.findChessboardCorners(temp,
                                                  (self.rows, self.columns))
         if not ret:
