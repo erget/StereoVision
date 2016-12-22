@@ -222,17 +222,18 @@ class StereoCalibrator(object):
         flags = (cv2.CALIB_FIX_ASPECT_RATIO + cv2.CALIB_ZERO_TANGENT_DIST +
                  cv2.CALIB_SAME_FOCAL_LENGTH)
         calib = StereoCalibration()
+        print(self.image_size, len(self.object_points), len(self.image_points["left"]), len(self.image_points["right"]))
         (calib.cam_mats["left"], calib.dist_coefs["left"],
          calib.cam_mats["right"], calib.dist_coefs["right"],
          calib.rot_mat, calib.trans_vec, calib.e_mat,
          calib.f_mat) = cv2.stereoCalibrate(self.object_points,
                                             self.image_points["left"],
                                             self.image_points["right"],
+                                            self.image_size,
                                             calib.cam_mats["left"],
                                             calib.dist_coefs["left"],
                                             calib.cam_mats["right"],
                                             calib.dist_coefs["right"],
-                                            self.image_size,
                                             calib.rot_mat,
                                             calib.trans_vec,
                                             calib.e_mat,
