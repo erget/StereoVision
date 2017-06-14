@@ -178,7 +178,7 @@ class BMTuner(object):
         self.bm_settings = {}
         for parameter in self.block_matcher.parameter_maxima.keys():
             self.bm_settings[parameter] = []
-        cv2.namedWindow(self.window_name)
+        cv2.namedWindow(self.window_name, flags=cv2.WINDOW_NORMAL)
         self._initialize_trackbars()
         self.tune_pair(image_pair)
 
