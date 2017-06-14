@@ -1,4 +1,5 @@
-#!/bin/python
+#!/usr/bin/env python3
+
 # Copyright (C) 2014 Daniel Lee <lee.daniel.1986@gmail.com>
 #
 # This file is part of StereoVision.
@@ -71,8 +72,6 @@ def main():
                 output_path = os.path.join(args.output_folder, filename)
                 cv2.imwrite(output_path, frame)
             progress.update(progress.maxval - (args.num_pictures - i))
-            for i in range(10):
-                pair.show_frames(1)
         progress.finish()
     if args.calibration_folder:
         args.input_files = find_files(args.output_folder)

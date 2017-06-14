@@ -136,8 +136,9 @@ class BMTuner(object):
         try:
             self.block_matcher.__setattr__(parameter, new_value)
         except BadBlockMatcherArgumentError:
+            print('Bad Block')
             return
-        self.update_disparity_map()
+        #self.update_disparity_map()
 
     def _initialize_trackbars(self):
         """
@@ -177,7 +178,7 @@ class BMTuner(object):
         self.bm_settings = {}
         for parameter in self.block_matcher.parameter_maxima.keys():
             self.bm_settings[parameter] = []
-        cv2.namedWindow(self.window_name)
+        cv2.namedWindow(self.window_name, flags=cv2.WINDOW_NORMAL)
         self._initialize_trackbars()
         self.tune_pair(image_pair)
 
@@ -192,13 +193,16 @@ class BMTuner(object):
         disparity = self.block_matcher.get_disparity(self.pair)
         norm_coeff = 255 / disparity.max()
         cv2.imshow(self.window_name, disparity * norm_coeff / 255)
-        cv2.waitKey()
+        return cv2.waitKey(0)
 
     def tune_pair(self, pair):
         """Tune a pair of images."""
-        self._save_bm_state()
-        self.pair = pair
-        self.update_disparity_map()
+        done = False
+        while not done:
+            self._save_bm_state()
+            self.pair = pair
+            if self.update_disparity_map() & 0xff == ord('q'):
+                done = True
 
     def report_settings(self, parameter):
         """

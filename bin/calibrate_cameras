@@ -1,5 +1,6 @@
-#!/bin/python
-## Copyright (C) 2014 Daniel Lee <lee.daniel.1986@gmail.com>
+#!/usr/bin/env python3
+
+# Copyright (C) 2014 Daniel Lee <lee.daniel.1986@gmail.com>
 #
 # This file is part of StereoVision.
 #
@@ -47,7 +48,6 @@ def main():
                         "chessboard corners.", action="store_true")
     args = parser.parse_args()
 
-    print args.input_folder
     args.input_files = find_files(args.input_folder)
     calibrate_folder(args)
 

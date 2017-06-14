@@ -1,4 +1,5 @@
-#!/bin/python
+#!/usr/bin/env python3
+
 # Copyright (C) 2014 Daniel Lee <lee.daniel.1986@gmail.com>
 #
 # This file is part of StereoVision.
@@ -26,7 +27,7 @@ parameters chosen in the ``BMTuner``'s GUI. Afterwards, report user's chosen
 settings and, if a file for the BM settings is provided, save the most common
 settings to file.
 """
-
+import os
 from argparse import ArgumentParser
 
 import cv2
@@ -58,6 +59,8 @@ def main():
         block_matcher = StereoBM()
     else:
         block_matcher = StereoSGBM()
+    if os.path.exists(args.bm_settings):
+        block_matcher.load_settings(args.bm_settings)
     image_pair = [cv2.imread(image) for image in input_files[:2]]
     input_files = input_files[2:]
     rectified_pair = calibration.rectify(image_pair)

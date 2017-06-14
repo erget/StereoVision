@@ -93,10 +93,15 @@ class StereoPair(object):
 
         ``wait`` is the wait interval in milliseconds before the window closes.
         """
-        for window, frame in zip(self.windows, self.get_frames()):
-            cv2.imshow(window, frame)
-        cv2.waitKey(wait)
-
+        while True:
+            frames = self.get_frames()
+            for window, frame in zip(self.windows, frames):
+                cv2.imshow(window, frame)
+            wk = cv2.waitKey(wait)
+            if wk & 0xFF == ord(' '):
+                break
+        return frames
+        
     def show_videos(self):
         """Show video from cameras."""
         while True:
@@ -119,9 +124,10 @@ class ChessboardFinder(StereoPair):
         """
         found_chessboard = [False, False]
         while not all(found_chessboard):
-            frames = self.get_frames()
             if show:
-                self.show_frames(1)
+                frames = self.show_frames(1)
+            else:
+                frames = self.get_frames()
             for i, frame in enumerate(frames):
                 (found_chessboard[i],
                  corners) = cv2.findChessboardCorners(frame, (columns, rows),
