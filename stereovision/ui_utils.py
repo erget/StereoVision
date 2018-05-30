@@ -92,7 +92,7 @@ def calibrate_folder(args):
     height, width = cv2.imread(args.input_files[0]).shape[:2]
     calibrator = StereoCalibrator(args.rows, args.columns, args.square_size,
                                   (width, height))
-    progress = ProgressBar(maxval=len(args.input_files),
+    progress = ProgressBar(max_value=len(args.input_files),
                           widgets=[Bar("=", "[", "]"),
                           " ", Percentage()])
     print("Reading input files...")
