@@ -157,9 +157,7 @@ class StereoBM(BlockMatcher):
     @stereo_bm_preset.setter
     def stereo_bm_preset(self, value):
         """Set private ``_stereo_bm_preset`` and reset ``_block_matcher``."""
-        if value in (cv2.STEREO_BM_BASIC_PRESET,
-                     cv2.STEREO_BM_FISH_EYE_PRESET,
-                     cv2.STEREO_BM_NARROW_PRESET):
+        if value in (0, 1, 2):
             self._bm_preset = value
         else:
             raise InvalidBMPresetError("Stereo BM preset must be defined as "
@@ -168,9 +166,8 @@ class StereoBM(BlockMatcher):
 
     def _replace_bm(self):
         """Replace ``_block_matcher`` with current values."""
-        self._block_matcher = cv2.StereoBM(preset=self._bm_preset,
-                                          ndisparities=self._search_range,
-                                          SADWindowSize=self._window_size)
+        self._block_matcher = cv2.StereoBM_create(numDisparities=self._search_range,
+                                          blockSize=self._window_size)
 
     def __init__(self, stereo_bm_preset=cv2.STEREO_BM_BASIC_PRESET,
                  search_range=80,
@@ -360,16 +357,16 @@ class StereoSGBM(BlockMatcher):
 
     def _replace_bm(self):
         """Replace ``_block_matcher`` with current values."""
-        self._block_matcher = cv2.StereoSGBM(minDisparity=self._min_disparity,
+        self._block_matcher = cv2.StereoSGBM_create(minDisparity=self._min_disparity,
                         numDisparities=self._num_disp,
-                        SADWindowSize=self._sad_window_size,
+                        blockSize=self._sad_window_size,
                         uniquenessRatio=self._uniqueness,
                         speckleWindowSize=self._speckle_window_size,
                         speckleRange=self._speckle_range,
                         disp12MaxDiff=self._max_disparity,
                         P1=self._P1,
                         P2=self._P2,
-                        fullDP=self._full_dp)
+                        mode=self._full_dp)
 
     def __init__(self, min_disparity=16, num_disp=96, sad_window_size=3,
                  uniqueness=10, speckle_window_size=100, speckle_range=32,
