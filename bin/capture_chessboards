@@ -56,7 +56,7 @@ def main():
     if args.calibration_folder and not args.square_size:
         args.print_help()
 
-    progress = ProgressBar(maxval=args.num_pictures,
+    progress = ProgressBar(max_value=args.num_pictures,
                           widgets=[Bar("=", "[", "]"),
                           " ", Percentage()])
     if not os.path.exists(args.output_folder):
@@ -70,7 +70,7 @@ def main():
                 filename = "{}_{}.ppm".format(side, number_string)
                 output_path = os.path.join(args.output_folder, filename)
                 cv2.imwrite(output_path, frame)
-            progress.update(progress.maxval - (args.num_pictures - i))
+            progress.update(progress.max_value - (args.num_pictures - i))
             for i in range(10):
                 pair.show_frames(1)
         progress.finish()
