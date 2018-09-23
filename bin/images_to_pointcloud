@@ -53,8 +53,8 @@ def main():
         block_matcher.load_settings(args.bm_settings)
 
     camera_pair = CalibratedPair(None,
-                                StereoCalibration(input_folder=calib_folder),
-                                block_matcher)
+                                 StereoCalibration(input_folder=calib_folder),
+                                 block_matcher)
     rectified_pair = camera_pair.calibration.rectify(image_pair)
     points = camera_pair.get_point_cloud(rectified_pair)
     points = points.filter_infinity()

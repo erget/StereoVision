@@ -47,7 +47,7 @@ setup(name="StereoVision",
                    "Intended Audience :: Science/Research",
                    "License :: Freely Distributable",
                    "License :: OSI Approved :: GNU General Public License v3 "
-                                              "or later (GPLv3+)",
+                   "or later (GPLv3+)",
                    "Natural Language :: English",
                    "Operating System :: OS Independent",
                    "Programming Language :: Python :: 2.7",

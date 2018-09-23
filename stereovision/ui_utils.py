@@ -60,7 +60,7 @@ CHESSBOARD_ARGUMENTS.add_argument("--square-size", help="Size of chessboard "
 #: Command line arguments for using StereoBM rather than StereoSGBM
 STEREO_BM_FLAG = ArgumentParser(add_help=False)
 STEREO_BM_FLAG.add_argument("--use_stereobm", help="Use StereoBM rather than "
-                              "StereoSGBM block matcher.", action="store_true")
+                            "StereoSGBM block matcher.", action="store_true")
 
 
 def find_files(folder):
@@ -93,8 +93,8 @@ def calibrate_folder(args):
     calibrator = StereoCalibrator(args.rows, args.columns, args.square_size,
                                   (width, height))
     progress = ProgressBar(max_value=len(args.input_files),
-                          widgets=[Bar("=", "[", "]"),
-                          " ", Percentage()])
+                           widgets=[Bar("=", "[", "]"),
+                           " ", Percentage()])
     print("Reading input files...")
     progress.start()
     while args.input_files:
@@ -223,7 +223,7 @@ class BMTuner(object):
         right_column_width = 21
         report.append(header)
         report.append("{}|{}".format("-" * left_column_width,
-                                    "-" * right_column_width))
+                                     "-" * right_column_width))
         for frequency in frequencies:
             left_column = str(value_frequency[frequency]).center(
                                                              left_column_width)

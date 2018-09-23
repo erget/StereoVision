@@ -38,10 +38,10 @@ from stereovision.ui_utils import find_files, BMTuner, STEREO_BM_FLAG
 
 def main():
     parser = ArgumentParser(description="Read images taken from a calibrated "
-                           "stereo pair, compute disparity maps from them and "
-                           "show them interactively to the user, allowing the "
-                           "user to tune the stereo block matcher settings in "
-                           "the GUI.", parents=[STEREO_BM_FLAG])
+                                        "stereo pair, compute disparity maps from them and "
+                                        "show them interactively to the user, allowing the "
+                                        "user to tune the stereo block matcher settings in "
+                                        "the GUI.", parents=[STEREO_BM_FLAG])
     parser.add_argument("calibration_folder",
                         help="Directory where calibration files for the stereo "
                         "pair are stored.")
