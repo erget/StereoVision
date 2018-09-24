@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with StereoVision.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
+"""
 Point cloud class generated from stereo image pairs.
 
 Classes:
@@ -23,7 +23,7 @@ Classes:
     * ``PointCloud`` - Point cloud with RGB colors
 
 .. image:: classes_point_cloud.svg
-'''
+"""
 
 import numpy as np
 
@@ -34,17 +34,17 @@ class PointCloud(object):
 
     #: Header for exporting point cloud to PLY
     ply_header = (
-'''ply
-format ascii 1.0
-element vertex {vertex_count}
-property float x
-property float y
-property float z
-property uchar red
-property uchar green
-property uchar blue
-end_header
-''')
+                    """ply
+                    format ascii 1.0
+                    element vertex {vertex_count}
+                    property float x
+                    property float y
+                    property float z
+                    property uchar red
+                    property uchar green
+                    property uchar blue
+                    end_header
+                    """)
 
     def __init__(self, coordinates, colors):
         """

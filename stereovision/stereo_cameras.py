@@ -125,8 +125,8 @@ class ChessboardFinder(StereoPair):
             for i, frame in enumerate(frames):
                 (found_chessboard[i],
                  corners) = cv2.findChessboardCorners(frame, (columns, rows),
-                                                  flags=cv2.CALIB_CB_FAST_CHECK)
-        return frames
+                                                      flags=cv2.CALIB_CB_FAST_CHECK)
+            return frames
 
 
 class CalibratedPair(StereoPair):
