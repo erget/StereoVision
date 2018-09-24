@@ -114,7 +114,7 @@ class StereoBM(BlockMatcher):
 
     parameter_maxima = {"search_range": None,
                         "window_size": 255,
-                        "stereo_bm_preset": cv2.STEREO_BM_NARROW_PRESET}
+                        "stereo_bm_preset": 2}
 
     @property
     def search_range(self):
@@ -139,9 +139,7 @@ class StereoBM(BlockMatcher):
     @window_size.setter
     def window_size(self, value):
         """Set private ``_window_size`` and reset ``_block_matcher``."""
-        if (value > 4 and
-            value < self.parameter_maxima["window_size"] and
-            value % 2):
+        if 4 < value < self.parameter_maxima["window_size"] and value % 2:
             self._window_size = value
         else:
             raise InvalidWindowSizeError("Window size must be an odd number "
@@ -169,11 +167,11 @@ class StereoBM(BlockMatcher):
         self._block_matcher = cv2.StereoBM_create(numDisparities=self._search_range,
                                                   blockSize=self._window_size)
 
-    def __init__(self, stereo_bm_preset=cv2.STEREO_BM_BASIC_PRESET,
+    def __init__(self, stereo_bm_preset=.0,
                  search_range=80,
                  window_size=21,
                  settings=None):
-        self._bm_preset = cv2.STEREO_BM_BASIC_PRESET
+        self._bm_preset = 0
         self._search_range = 0
         self._window_size = 5
         #: OpenCV camera type for ``_block_matcher``
