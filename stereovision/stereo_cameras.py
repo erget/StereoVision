@@ -118,15 +118,19 @@ class ChessboardFinder(StereoPair):
         are shown while the cameras search for a chessboard.
         """
         found_chessboard = [False, False]
+
+        # Placeholder for corners
+        found_corners = [None, None]
+
         while not all(found_chessboard):
             frames = self.get_frames()
             if show:
                 self.show_frames(1)
             for i, frame in enumerate(frames):
                 (found_chessboard[i],
-                 corners) = cv2.findChessboardCorners(frame, (columns, rows),
+                 found_corners[i]) = cv2.findChessboardCorners(frame, (columns, rows),
                                                   flags=cv2.CALIB_CB_FAST_CHECK)
-        return frames
+        return frames, found_corners
 
 
 class CalibratedPair(StereoPair):
