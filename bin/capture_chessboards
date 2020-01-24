@@ -85,6 +85,7 @@ def main():
             show_selected_frames(frames, corners, pair, args, True)
 
         progress.finish()
+        cv2.destroyAllWindows()
 
     if args.calibration_folder:
         args.input_files = find_files(args.output_folder)
