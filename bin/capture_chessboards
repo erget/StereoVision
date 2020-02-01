@@ -95,6 +95,11 @@ def main():
 
 
 def show_selected_frames(frames, corners, pair, args, draw_corners=False):
+    """
+    Display the most recently captured (left as well as right) images.
+    If draw_corners is set to true, the identified corners are marked on the images.
+    """
+
     if draw_corners:
         for frame, corner in zip(frames, corners):
             cv2.drawChessboardCorners(frame, (args.columns, args.rows), corner, True)
@@ -111,7 +116,6 @@ def enforce_delay(pair, delay):
 
     font = cv2.FONT_HERSHEY_SIMPLEX
     line_type = cv2.LINE_4
-    font_scale = 6.0
     line_thickness = 4
 
     start_time = time.time()
@@ -123,6 +127,10 @@ def enforce_delay(pair, delay):
 
         # Calculates the time remaining before the next sample is captured
         time_remaining = "{:.2f}".format(delay - now + start_time)
+
+        # Estimating the scale factor.
+        font_scale = get_approx_font_scale(frames[0], time_remaining, font, line_thickness)
+
         text_size = cv2.getTextSize(time_remaining, font, font_scale, line_thickness)[0]
 
         # Calculates the position of the text
@@ -138,7 +146,28 @@ def enforce_delay(pair, delay):
         now = time.time()
 
 
+def get_approx_font_scale(frame, text, font, line_thickness):
+    """
+    Approximate the font scale for the timer display.
+    """
+
+    _, width = frame.shape[:2]
+    target_width = width / 2
+
+    base_text_size = cv2.getTextSize(text, font, 1.0, line_thickness)[0]
+    scale_factor = float(target_width) / base_text_size[0]
+
+    return scale_factor
+
+
 def set_window_position(pair):
+
+    """
+    Set initial the positions of windows.
+    The top left and right windows display the live cam stream with timer overlay.
+    The bottom left and right windows display recently selected frame.
+    """
+
     frames = pair.get_frames()
     pair.show_frames(1)
 
