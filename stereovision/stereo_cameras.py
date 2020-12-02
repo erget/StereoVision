@@ -83,8 +83,8 @@ class StereoPair(object):
         """
         frame = self.captures[0].read()[1]
         height, width, colors = frame.shape
-        left_frame = frame[:, :width/2, :]
-        right_frame = frame[:, width/2:, :]
+        left_frame = frame[:, :int(width / 2), :]
+        right_frame = frame[:, int(width / 2):, :]
         return [left_frame, right_frame]
 
     def show_frames(self, wait=0):
