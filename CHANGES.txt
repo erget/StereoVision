@@ -1,3 +1,5 @@
+Pending -- Fix #42 (thank you @Jgil10)
+
 v1.0.3, 8 Feb 2016 -- Add reference to tutorials
 
 v1.0.3, 14 January 2016 -- Fix botched merge
